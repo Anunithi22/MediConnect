@@ -12,6 +12,9 @@ import AboutPage from './pages/AboutPage';
 import FindDoctorPage from './pages/FindDoctorPage';
 import FindHospitalPage from './pages/FindHospitalPage';
 import AiSearchPage from './pages/AiSearchPage';
+import ContactPage from './pages/ContactPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Authentication Pages
@@ -66,6 +69,9 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/find-doctor" element={<FindDoctorPage />} />
           <Route path="/find-hospital" element={<FindHospitalPage />} />
           <Route path="/patient/ai-search" element={<AiSearchPage />} />

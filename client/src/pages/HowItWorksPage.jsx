@@ -1,125 +1,161 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { 
   HelpCircle, 
-  MessageSquareHeart, 
+  MessageSquare, 
+  Sparkles, 
   Building2, 
-  CalendarCheck, 
-  Award, 
-  ShieldCheck, 
-  ArrowRight 
+  Users, 
+  Scale, 
+  Calendar, 
+  CheckCircle, 
+  HeartHandshake, 
+  Star,
+  ShieldCheck,
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Container, SectionHeader, Card, Badge, Button } from '../components/ui';
 
 export default function HowItWorksPage() {
-  const { t } = useTranslation();
-
   const steps = [
     {
       num: '01',
-      title: 'State Your Healthcare Requirement',
-      desc: 'Type your symptoms or requirement in your own natural language (English, தமிழ், or हिन्दी). MediConnect helps you understand which medical specialty is relevant without medical jargon.',
-      icon: MessageSquareHeart,
-      color: 'teal'
+      title: 'Enter Healthcare Requirement',
+      desc: 'Type your symptoms or care requirement in natural language (English, Tamil, or Hindi) without needing clinical terminology.',
+      phase: 'Phase 5 & 10',
+      icon: MessageSquare,
+      color: 'teal',
     },
     {
       num: '02',
-      title: 'AI Matches Relevant Specialties',
-      desc: 'Our AI service extracts search keywords and identifies potential specialties. It explicitly does not diagnose diseases or prescribe medications.',
-      icon: ShieldCheck,
-      color: 'blue'
+      title: 'AI Specialty Matching',
+      desc: 'Our semantic AI matches your concerns to licensed medical disciplines (e.g. skin irritation → Dermatology) while observing strict non-diagnostic safety boundaries.',
+      phase: 'Phase 12 (AI Engine)',
+      icon: Sparkles,
+      color: 'blue',
     },
     {
       num: '03',
-      title: 'Location & Distance Calculation',
-      desc: 'Using high-precision Haversine geo-distance, discover nearby licensed hospitals and verified clinics providing that exact medical specialty.',
+      title: 'Discover Nearby Hospitals',
+      desc: 'Haversine distance calculation identifies hospitals and certified medical centers providing that exact specialty near your coordinates.',
+      phase: 'Phase 7 & 8',
       icon: Building2,
-      color: 'indigo'
+      color: 'emerald',
     },
     {
       num: '04',
-      title: 'Compare Doctors & Live Availability',
-      desc: 'Review doctor qualifications, verified patient ratings, clinical experience, and live available appointment slots.',
-      icon: Award,
-      color: 'amber'
+      title: 'Find Suitable Doctors',
+      desc: 'Review certified practitioners matching your requirements, including qualifications, clinical experience, and consultation fees.',
+      phase: 'Phase 6',
+      icon: Users,
+      color: 'purple',
     },
     {
       num: '05',
-      title: 'Instant Online Booking',
-      desc: 'Choose your desired date and time slot. Our backend prevents double-booking and issues an immediate digital booking confirmation.',
-      icon: CalendarCheck,
-      color: 'emerald'
-    }
+      title: 'Compare Options & Scores',
+      desc: 'Compare doctors and hospitals side-by-side using transparent recommendation factors: specialty match, proximity, reviews, and clinical experience.',
+      phase: 'Phase 12',
+      icon: Scale,
+      color: 'amber',
+    },
+    {
+      num: '06',
+      title: 'Check Live Availability',
+      desc: 'View the doctor’s verified calendar schedule with real-time open consultation slots, break times, and holiday dates.',
+      phase: 'Phase 9',
+      icon: Calendar,
+      color: 'teal',
+    },
+    {
+      num: '07',
+      title: 'Book Appointment Online',
+      desc: 'Select an available 30-minute slot, enter consultation details, and receive immediate booking confirmation with double-booking prevention.',
+      phase: 'Phase 10',
+      icon: CheckCircle,
+      color: 'blue',
+    },
+    {
+      num: '08',
+      title: 'Attend Consultation',
+      desc: 'Visit the hospital facility at the confirmed time. Doctors view basic appointment context to prepare your consultation.',
+      phase: 'Phase 10 & 13',
+      icon: HeartHandshake,
+      color: 'emerald',
+    },
+    {
+      num: '09',
+      title: 'Submit Verified Review',
+      desc: 'After your appointment is marked completed, submit verified feedback and ratings to help future patients make informed choices.',
+      phase: 'Phase 11',
+      icon: Star,
+      color: 'amber',
+    },
   ];
 
   return (
-    <div className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      {/* Header */}
-      <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-semibold">
-          <HelpCircle className="w-3.5 h-3.5" />
-          <span>Transparent Healthcare Process</span>
-        </div>
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-          How MediConnect Works
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-          From symptom uncertainty to a confirmed doctor consultation in a few simple steps.
-        </p>
-      </div>
+    <div className="py-12 md:py-20">
+      <Container>
+        <SectionHeader
+          badge="Complete Healthcare Journey"
+          badgeIcon={HelpCircle}
+          title="How MediConnect Works"
+          subtitle="A transparent, step-by-step roadmap from healthcare inquiry to post-consultation patient review."
+        />
 
-      {/* Steps List */}
-      <div className="max-w-4xl mx-auto space-y-8">
-        {steps.map((s, idx) => {
-          const Icon = s.icon;
-          return (
-            <div 
-              key={s.num} 
-              className="p-2 rounded-3xl bg-white border border-slate-200 shadow-subtle hover:shadow-card transition-all"
-            >
-              <div className="p-6 flex flex-col sm:flex-row items-start gap-6">
-                <div className="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-700 shrink-0 font-display font-extrabold text-xl">
-                  {s.num}
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-brand-600" />
-                    <h3 className="font-display font-bold text-lg text-slate-900">
-                      {s.title}
-                    </h3>
+        {/* 9-Step Roadmap Grid */}
+        <div className="mt-16 space-y-6 max-w-4xl mx-auto">
+          {steps.map((s) => {
+            const Icon = s.icon;
+            return (
+              <Card key={s.num} className="p-6 sm:p-7">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-700 shrink-0 font-display font-extrabold text-xl shadow-xs">
+                    {s.num}
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    {s.desc}
-                  </p>
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-brand-600" />
+                        <h3 className="font-display font-bold text-base sm:text-lg text-slate-900">
+                          {s.title}
+                        </h3>
+                      </div>
+                      <Badge variant={s.color} size="sm">
+                        {s.phase}
+                      </Badge>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      {s.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
 
-      {/* Medical Safety Notice */}
-      <div className="mt-16 max-w-4xl mx-auto rounded-3xl bg-amber-50 border border-amber-200/80 p-6 text-amber-900">
-        <h4 className="font-display font-bold text-sm mb-1 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-amber-700" />
-          <span>Non-Diagnostic Guarantee</span>
-        </h4>
-        <p className="text-xs text-amber-800 leading-relaxed">
-          MediConnect never provides medical diagnosis, treatment regimens, or prescription writing. All clinical diagnoses and treatments must be conducted by qualified, licensed healthcare professionals.
-        </p>
-      </div>
+        {/* Safety Callout */}
+        <div className="mt-16 max-w-4xl mx-auto rounded-3xl bg-amber-50 border border-amber-200/80 p-6 sm:p-8 space-y-2 text-amber-900">
+          <div className="flex items-center gap-2 font-bold text-sm">
+            <ShieldCheck className="w-5 h-5 text-amber-700" />
+            <span>Non-Diagnostic Clinical Guarantee</span>
+          </div>
+          <p className="text-xs text-amber-800 leading-relaxed">
+            MediConnect is designed purely as an informational healthcare discovery and appointment scheduling platform. It does not replace professional medical diagnosis, laboratory testing, or physician consultation.
+          </p>
+        </div>
 
-      <div className="mt-12 text-center">
-        <Link
-          to="/patient/ai-search"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm shadow-md transition-all"
-        >
-          <span>Try AI Health Search</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+        <div className="mt-12 text-center">
+          <Link to="/register">
+            <Button size="lg" trailingIcon={ArrowRight} nestedTrailing={true}>
+              Create Patient Account
+            </Button>
+          </Link>
+        </div>
 
+      </Container>
     </div>
   );
 }

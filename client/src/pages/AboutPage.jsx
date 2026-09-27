@@ -1,71 +1,150 @@
 import React from 'react';
-import { HeartHandshake, Shield, Target, Users, MapPin, Sparkles } from 'lucide-react';
+import { 
+  HeartHandshake, 
+  ShieldCheck, 
+  Target, 
+  Users, 
+  MapPin, 
+  Sparkles, 
+  CalendarCheck, 
+  Globe2, 
+  CheckCircle2 
+} from 'lucide-react';
+import { Container, SectionHeader, Card, Badge } from '../components/ui';
 
 export default function AboutPage() {
+  const pillars = [
+    {
+      title: 'Ethical Non-Diagnostic AI',
+      desc: 'Our AI model analyzes symptom semantics purely to recommend relevant medical disciplines (e.g. skin rash → Dermatology). We categorically prohibit algorithmic medical diagnosis and drug prescription.',
+      icon: ShieldCheck,
+      badge: 'Safety First',
+      color: 'teal',
+    },
+    {
+      title: 'Geographic Distance Precision',
+      desc: 'Using high-precision mathematical Haversine calculations, patients determine the closest licensed health institutions without relying on vague travel estimates.',
+      icon: MapPin,
+      badge: 'Proximity',
+      color: 'blue',
+    },
+    {
+      title: 'Double-Booking Prevention',
+      desc: 'Our real-time backend calendar lock validates doctor slots at the database transaction layer, eliminating double-booked appointments and extended waiting room queues.',
+      icon: CalendarCheck,
+      badge: 'Efficiency',
+      color: 'emerald',
+    },
+    {
+      title: 'Rural & Elderly Inclusivity',
+      desc: 'Engineered with large touch targets, high contrast visual hierarchy, and full native support in English, தமிழ் (Tamil), and हिन्दी (Hindi) for rural patients unfamiliar with medical jargon.',
+      icon: Globe2,
+      badge: 'Accessibility',
+      color: 'purple',
+    },
+  ];
+
   return (
-    <div className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      {/* Header */}
-      <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-semibold">
-          <HeartHandshake className="w-3.5 h-3.5" />
-          <span>Our Vision & Mission</span>
-        </div>
-        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-          About MediConnect
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-          MediConnect was conceived to solve the fundamental friction patients face when navigating healthcare: understanding which specialist to consult, which nearby hospital offers the service, and booking with zero friction.
-        </p>
-      </div>
+    <div className="py-12 md:py-20">
+      <Container>
+        {/* Header */}
+        <SectionHeader
+          badge="Our Mission"
+          badgeIcon={HeartHandshake}
+          title="Bridging Patients with the Right Healthcare"
+          subtitle="MediConnect was engineered to solve one practical question: 'Which specialist should I consult, which nearby hospital offers that care, and how can I book an appointment online?'"
+        />
 
-      {/* Values Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        
-        <div className="p-2 rounded-3xl bg-white border border-slate-200 shadow-subtle">
-          <div className="p-6 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-brand-600 flex items-center justify-center">
-              <Shield className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-slate-900">
-              Ethical Non-Diagnostic AI
+        {/* Problem & Solution Grid */}
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="p-6 sm:p-8 space-y-4 border-rose-100 bg-rose-50/20">
+            <Badge variant="rose" size="sm">
+              The Healthcare Challenge
+            </Badge>
+            <h3 className="font-display font-bold text-xl text-slate-900">
+              Why Patients Struggle to Find Care
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              We strictly forbid AI medical diagnosis and prescription. AI acts purely as a semantic directory assistant that maps user symptoms to medical specialties.
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Patients frequently suffer from symptoms without knowing which medical specialty is appropriate. Rural and elderly users often travel long distances only to discover a hospital lacks the required department, or that the specialist is on leave.
             </p>
+            <ul className="space-y-2 text-xs text-slate-600 pt-2">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Uncertainty regarding medical specialties vs general practice</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Lack of transparent doctor schedules and availability</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Language barriers preventing digital healthcare adoption</span>
+              </li>
+            </ul>
+          </Card>
+
+          <Card className="p-6 sm:p-8 space-y-4 border-teal-100 bg-teal-50/20">
+            <Badge variant="teal" size="sm">
+              The MediConnect Solution
+            </Badge>
+            <h3 className="font-display font-bold text-xl text-slate-900">
+              Assisted Discovery + Direct Scheduling
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              MediConnect bridges this gap by interpreting patient inquiries in everyday language, mapping them to accredited medical specialties, finding nearby hospitals, ranking suitable doctors based on experience and reviews, and securing online slots.
+            </p>
+            <ul className="space-y-2 text-xs text-slate-600 pt-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                <span>AI-assisted specialty suggestions with full medical safety safeguards</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                <span>Exact distance calculations based on user coordinates</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-brand-600" />
+                <span>Multilingual interfaces tailored for regional and rural users</span>
+              </li>
+            </ul>
+          </Card>
+        </div>
+
+        {/* 4 Architectural Pillars */}
+        <div className="mt-20">
+          <SectionHeader
+            badge="Architecture Principles"
+            badgeIcon={Target}
+            title="Core Platform Tenets"
+            subtitle="Built from the ground up for safety, speed, and absolute clinical transparency."
+          />
+
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {pillars.map((p, idx) => {
+              const Icon = p.icon;
+              return (
+                <Card key={idx} className="p-6 sm:p-8 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <Badge variant={p.color} size="sm">
+                      {p.badge}
+                    </Badge>
+                  </div>
+                  <h4 className="font-display font-bold text-lg text-slate-900 pt-1">
+                    {p.title}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {p.desc}
+                  </p>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
-        <div className="p-2 rounded-3xl bg-white border border-slate-200 shadow-subtle">
-          <div className="p-6 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Users className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-slate-900">
-              Rural & Regional Accessibility
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Full multilingual localization in English, Tamil, and Hindi, engineered with high-contrast, large touch-targets for elderly and rural users.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-2 rounded-3xl bg-white border border-slate-200 shadow-subtle">
-          <div className="p-6 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <Target className="w-6 h-6" />
-            </div>
-            <h3 className="font-display font-bold text-lg text-slate-900">
-              Transparent Proximity Matching
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Haversine formula calculations compute exact geographic distances, factoring verified patient reviews, clinical experience, and live doctor slot schedules.
-            </p>
-          </div>
-        </div>
-
-      </div>
-
+      </Container>
     </div>
   );
 }
