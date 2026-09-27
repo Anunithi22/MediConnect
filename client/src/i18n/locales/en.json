@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "home": "Home",
+    "findDoctor": "Find Doctor",
+    "findHospital": "Find Hospital",
+    "aiAssistant": "AI Health Search",
+    "howItWorks": "How It Works",
+    "about": "About",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "logout": "Logout"
+  },
+  "hero": {
+    "badge": "AI-Assisted Healthcare Discovery Platform",
+    "title": "Find the Right Care, Closer to You.",
+    "subtitle": "Discover suitable doctors and hospitals based on your healthcare needs, location, reviews, experience, and availability.",
+    "btnFindDoctor": "Find a Doctor",
+    "btnFindHospital": "Find a Hospital",
+    "btnAiSearch": "AI Health Search",
+    "statsDoctors": "500+ Verified Doctors",
+    "statsHospitals": "80+ Leading Hospitals",
+    "statsSatisfaction": "98% Patient Trust"
+  },
+  "search": {
+    "concernLabel": "Healthcare Concern",
+    "concernPlaceholder": "e.g., severe migraine, skin rash, child fever...",
+    "specialtyLabel": "Specialty",
+    "specialtyAll": "All Specialties",
+    "locationLabel": "Your Location",
+    "locationPlaceholder": "Enter city, area, or PIN code",
+    "useGps": "Detect Current Location",
+    "searchBtn": "Search Doctors & Hospitals"
+  },
+  "features": {
+    "title": "Intelligent, Transparent, Human-Centered Healthcare",
+    "subtitle": "Everything you need to discover trusted doctors, compare nearby hospitals, and book appointments with total confidence.",
+    "aiTitle": "AI-Assisted Matching",
+    "aiDesc": "Describe symptoms in plain language to find relevant specialties without medical jargon.",
+    "nearbyTitle": "Nearby Hospitals",
+    "nearbyDesc": "Haversine geo-distance calculation to discover the closest qualified healthcare centers.",
+    "availabilityTitle": "Live Availability",
+    "availabilityDesc": "Real-time doctor schedules, transparent consultation slots, and immediate booking.",
+    "reviewsTitle": "Verified Patient Reviews",
+    "reviewsDesc": "Real feedback from completed patient visits to help you make informed decisions.",
+    "multilingualTitle": "Multilingual & Accessible",
+    "multilingualDesc": "Available in English, தமிழ் (Tamil), and हिन्दी (Hindi) with rural-friendly high-contrast UI.",
+    "bookingTitle": "Fast Online Booking",
+    "bookingDesc": "Book instantly with automated confirmations and no double-booking guarantee."
+  },
+  "howItWorks": {
+    "title": "How MediConnect Works",
+    "subtitle": "Four simple, transparent steps from healthcare query to confirmed consultation.",
+    "step1Title": "1. Tell Us Your Requirement",
+    "step1Desc": "Describe what healthcare help you are looking for in your own words or local language.",
+    "step2Title": "2. Discover Specialties & Hospitals",
+    "step2Desc": "Our AI identifies potentially relevant specialties and matches licensed hospitals providing that care.",
+    "step3Title": "3. Compare Distance & Doctors",
+    "step3Desc": "Review proximity, patient ratings, clinical experience, and live open consultation slots.",
+    "step4Title": "4. Instant Booking Confirmation",
+    "step4Desc": "Choose your preferred time slot, receive booking confirmation, and track your appointment."
+  },
+  "disclaimer": {
+    "safetyTitle": "Important Medical Safety Notice",
+    "safetyText": "MediConnect provides informational recommendations to help users discover healthcare professionals and facilities. It does NOT provide medical diagnosis or treatment advice. The final healthcare decision belongs to the patient and qualified healthcare professionals.",
+    "emergencyText": "If you are experiencing a medical emergency or severe symptoms, please immediately contact local emergency services (112 / 108) or visit the nearest emergency department."
+  },
+  "footer": {
+    "tagline": "Find the Right Care, Closer to You.",
+    "copyright": "© 2026 MediConnect Healthcare Technologies. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact Support",
+    "emergency": "Emergency Helpline: 112 / 108"
+  }
+}
