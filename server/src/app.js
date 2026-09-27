@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { ENV } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
+import authRoutes from './routes/authRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -60,6 +61,7 @@ if (ENV.NODE_ENV === 'development') {
 
 // Routes
 app.use('/api', healthRoutes);
+app.use('/api/auth', authRoutes);
 
 // Root route
 app.get('/', (req, res) => {
