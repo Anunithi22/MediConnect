@@ -6,6 +6,13 @@ import rateLimit from 'express-rate-limit';
 import { ENV } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
 import authRoutes from './routes/authRoutes.js';
+import patientRoutes from './routes/patientRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
+import searchHistoryRoutes from './routes/searchHistoryRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import savedDoctorRoutes from './routes/savedDoctorRoutes.js';
+import savedHospitalRoutes from './routes/savedHospitalRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -62,6 +69,13 @@ if (ENV.NODE_ENV === 'development') {
 // Routes
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/search-history', searchHistoryRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/saved-doctors', savedDoctorRoutes);
+app.use('/api/saved-hospitals', savedHospitalRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Root route
 app.get('/', (req, res) => {

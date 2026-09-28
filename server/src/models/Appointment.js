@@ -55,6 +55,10 @@ const appointmentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    cancellationReason: {
+      type: String,
+      default: '',
+    },
     isReviewed: {
       type: Boolean,
       default: false,

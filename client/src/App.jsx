@@ -21,8 +21,18 @@ import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
 
-// Protected Dashboards
+// Protected Dashboards & Layouts
+import PatientLayout from './layouts/PatientLayout';
 import PatientDashboard from './pages/patient/PatientDashboard';
+import PatientProfile from './pages/patient/PatientProfile';
+import PatientAppointments from './pages/patient/PatientAppointments';
+import PatientAppointmentDetails from './pages/patient/PatientAppointmentDetails';
+import PatientSavedDoctors from './pages/patient/PatientSavedDoctors';
+import PatientSavedHospitals from './pages/patient/PatientSavedHospitals';
+import PatientSearchHistory from './pages/patient/PatientSearchHistory';
+import PatientNotifications from './pages/patient/PatientNotifications';
+import PatientReviews from './pages/patient/PatientReviews';
+import PatientSettings from './pages/patient/PatientSettings';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
@@ -94,11 +104,6 @@ export default function App() {
             }
           />
 
-          {/* Protected Patient Routes */}
-          <Route element={<RoleProtectedRoute allowedRoles={['patient']} />}>
-            <Route path="/patient/dashboard" element={<PatientDashboard />} />
-          </Route>
-
           {/* Protected Doctor Routes */}
           <Route element={<RoleProtectedRoute allowedRoles={['doctor']} />}>
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
@@ -111,6 +116,23 @@ export default function App() {
 
           {/* 404 Fallback */}
           <Route path="*" element={<NotFoundPage />} />
+        </Route>
+
+        {/* Dedicated Protected Patient Portal with PatientLayout */}
+        <Route element={<RoleProtectedRoute allowedRoles={['patient']} />}>
+          <Route element={<PatientLayout />}>
+            <Route path="/patient" element={<Navigate to="/patient/dashboard" replace />} />
+            <Route path="/patient/dashboard" element={<PatientDashboard />} />
+            <Route path="/patient/profile" element={<PatientProfile />} />
+            <Route path="/patient/appointments" element={<PatientAppointments />} />
+            <Route path="/patient/appointments/:id" element={<PatientAppointmentDetails />} />
+            <Route path="/patient/saved-doctors" element={<PatientSavedDoctors />} />
+            <Route path="/patient/saved-hospitals" element={<PatientSavedHospitals />} />
+            <Route path="/patient/search-history" element={<PatientSearchHistory />} />
+            <Route path="/patient/notifications" element={<PatientNotifications />} />
+            <Route path="/patient/reviews" element={<PatientReviews />} />
+            <Route path="/patient/settings" element={<PatientSettings />} />
+          </Route>
         </Route>
       </Routes>
     </AuthProvider>

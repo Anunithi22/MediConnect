@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -16,16 +16,30 @@ import {
   User,
   ArrowRight,
   ShieldCheck,
-  LayoutDashboard
+  LayoutDashboard,
+  Bell,
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useAuth } from '../../context/AuthContext';
+import patientService from '../../services/patientService';
 
 export default function Navbar() {
   const { t } = useTranslation();
   const location = useLocation();
   const { currentUser, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (isAuthenticated && currentUser?.role === 'patient') {
+      patientService
+        .getNotifications()
+        .then((res) => {
+          if (res.success) setUnreadCount(res.unreadCount || 0);
+        })
+        .catch(() => {});
+    }
+  }, [isAuthenticated, currentUser, location.pathname]);
 
   // Check active state
   const isActive = (path) => location.pathname === path;
@@ -108,6 +122,21 @@ export default function Navbar() {
 
             {isAuthenticated && currentUser ? (
               <div className="flex items-center gap-2">
+                {currentUser.role === 'patient' && (
+                  <Link
+                    to="/patient/notifications"
+                    className="relative p-1.5 rounded-full border border-slate-200 text-slate-600 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                    title="Notifications"
+                  >
+                    <Bell className="w-3.5 h-3.5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
+
                 <Link
                   to={`/${currentUser.role}/dashboard`}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200 text-xs font-bold text-brand-800 hover:bg-brand-100 transition-colors"

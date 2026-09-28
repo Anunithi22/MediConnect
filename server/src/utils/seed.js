@@ -9,6 +9,10 @@ import {
   Availability,
   Appointment,
   Review,
+  Notification,
+  SavedDoctor,
+  SavedHospital,
+  SearchHistory,
 } from '../models/index.js';
 
 dotenv.config();
@@ -266,6 +270,10 @@ export const seedDatabase = async () => {
       Availability.deleteMany({}),
       Appointment.deleteMany({}),
       Review.deleteMany({}),
+      Notification.deleteMany({}),
+      SavedDoctor.deleteMany({}),
+      SavedHospital.deleteMany({}),
+      SearchHistory.deleteMany({}),
     ]);
 
     console.log('[Seed] Inserting Specializations...');
@@ -300,7 +308,7 @@ export const seedDatabase = async () => {
       isActive: true,
     });
 
-    await Patient.create({
+    const patientDoc = await Patient.create({
       user: patientUser._id,
       age: 29,
       gender: 'female',
@@ -450,6 +458,7 @@ export const seedDatabase = async () => {
       },
     ];
 
+    const createdDoctors = [];
     for (let i = 0; i < doctorSeedProfiles.length; i++) {
       const doc = doctorSeedProfiles[i];
       const hospitalObj = createdHospitals[i % createdHospitals.length];
@@ -488,7 +497,124 @@ export const seedDatabase = async () => {
         breakTime: { start: '13:00', end: '14:00' },
         slotDurationMinutes: 30,
       });
+
+      createdDoctors.push(doctorDoc);
     }
+
+    console.log('[Seed] Seeding patient appointments, reviews, saved items & notifications...');
+    // Seed Appointments for Patient
+    const upcomingDate = new Date();
+    upcomingDate.setDate(upcomingDate.getDate() + 2);
+    upcomingDate.setHours(10, 30, 0, 0);
+
+    const pastDate1 = new Date();
+    pastDate1.setDate(pastDate1.getDate() - 14);
+    pastDate1.setHours(14, 0, 0, 0);
+
+    const pastDate2 = new Date();
+    pastDate2.setDate(pastDate2.getDate() - 30);
+    pastDate2.setHours(11, 0, 0, 0);
+
+    const upcomingApt = await Appointment.create({
+      bookingId: 'APT-2026-00101',
+      patient: patientDoc._id,
+      patientUser: patientUser._id,
+      doctor: createdDoctors[0]._id,
+      hospital: createdDoctors[0].hospital,
+      date: upcomingDate,
+      timeSlot: '10:30 AM',
+      reason: 'Cardiovascular checkup and mild palpitations check',
+      status: 'confirmed',
+      consultationFee: createdDoctors[0].consultationFee,
+      isReviewed: false,
+    });
+
+    const completedApt = await Appointment.create({
+      bookingId: 'APT-2026-00085',
+      patient: patientDoc._id,
+      patientUser: patientUser._id,
+      doctor: createdDoctors[1]._id,
+      hospital: createdDoctors[1].hospital,
+      date: pastDate1,
+      timeSlot: '02:00 PM',
+      reason: 'Seasonal skin allergy and itchy rash consult',
+      status: 'completed',
+      consultationFee: createdDoctors[1].consultationFee,
+      isReviewed: true,
+    });
+
+    await Appointment.create({
+      bookingId: 'APT-2026-00042',
+      patient: patientDoc._id,
+      patientUser: patientUser._id,
+      doctor: createdDoctors[2]._id,
+      hospital: createdDoctors[2].hospital,
+      date: pastDate2,
+      timeSlot: '11:00 AM',
+      reason: 'Digestive consultation and GERD guidance',
+      status: 'cancelled',
+      consultationFee: createdDoctors[2].consultationFee,
+      isReviewed: false,
+    });
+
+    // Seed Review for completed appointment
+    await Review.create({
+      appointment: completedApt._id,
+      patient: patientDoc._id,
+      patientUser: patientUser._id,
+      doctor: createdDoctors[1]._id,
+      hospital: createdDoctors[1].hospital,
+      doctorRating: 5,
+      doctorReview: 'Dr. Priya was very patient, empathetic, and explained the skincare routine clearly. The allergic rash subsided within 3 days.',
+      hospitalRating: 5,
+      hospitalReview: 'Fortis Malar premises were clean, sanitised, and the appointment was on time.',
+    });
+
+    // Seed Saved Doctors
+    await SavedDoctor.insertMany([
+      { patient: patientDoc._id, doctor: createdDoctors[0]._id },
+      { patient: patientDoc._id, doctor: createdDoctors[1]._id },
+    ]);
+
+    // Seed Saved Hospitals
+    await SavedHospital.insertMany([
+      { patient: patientDoc._id, hospital: createdHospitals[0]._id },
+      { patient: patientDoc._id, hospital: createdHospitals[1]._id },
+    ]);
+
+    // Seed Search History
+    await SearchHistory.insertMany([
+      { patient: patientDoc._id, query: 'Cardiologist in Thousand Lights', specialty: 'Cardiology', location: 'Chennai' },
+      { patient: patientDoc._id, query: 'Dermatologist for skin allergy', specialty: 'Dermatology', location: 'Chennai' },
+      { patient: patientDoc._id, query: 'Pediatric care near Adyar', specialty: 'Pediatrics', location: 'Chennai' },
+    ]);
+
+    // Seed Notifications
+    await Notification.insertMany([
+      {
+        recipient: patientUser._id,
+        title: 'Upcoming Appointment Reminder',
+        message: 'Your appointment with Dr. Arun Kumar is scheduled for in 2 days at 10:30 AM.',
+        type: 'appointment_reminder',
+        isRead: false,
+        relatedId: upcomingApt._id,
+      },
+      {
+        recipient: patientUser._id,
+        title: 'Appointment Confirmed',
+        message: 'Your booking APT-2026-00101 with Dr. Arun Kumar has been successfully confirmed.',
+        type: 'appointment_confirmed',
+        isRead: true,
+        relatedId: upcomingApt._id,
+      },
+      {
+        recipient: patientUser._id,
+        title: 'Welcome to MediConnect',
+        message: 'Welcome to MediConnect! Discover verified doctors and hospitals suited to your care preferences.',
+        type: 'system',
+        isRead: true,
+      },
+    ]);
 
     console.log('[Seed] Database successfully populated!');
     console.log('--------------------------------------------------');
