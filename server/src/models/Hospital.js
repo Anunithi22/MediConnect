@@ -73,9 +73,20 @@ const hospitalSchema = new mongoose.Schema(
       type: String,
       default: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&q=80&w=600',
     },
+    description: {
+      type: String,
+      default: '',
+    },
+    hospitalType: {
+      type: String,
+      enum: ['Multi-Specialty', 'Super-Specialty', 'Private', 'Government', 'Clinic'],
+      default: 'Multi-Specialty',
+      index: true,
+    },
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
   },
   {
@@ -83,8 +94,13 @@ const hospitalSchema = new mongoose.Schema(
   }
 );
 
-// Geo compound index for location
+// Indexes for high performance hospital discovery
 hospitalSchema.index({ latitude: 1, longitude: 1 });
+hospitalSchema.index({ city: 1, state: 1, pincode: 1 });
+hospitalSchema.index({ specialties: 1, isActive: 1 });
+hospitalSchema.index({ facilities: 1 });
+hospitalSchema.index({ emergencyService: 1, isActive: 1 });
+hospitalSchema.index({ rating: -1, reviewCount: -1 });
 
 const Hospital = mongoose.models.Hospital || mongoose.model('Hospital', hospitalSchema);
 export default Hospital;

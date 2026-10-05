@@ -282,8 +282,10 @@ export const seedDatabase = async () => {
     createdSpecs.forEach((s) => specMap.set(s.name, s));
 
     console.log('[Seed] Inserting Hospitals...');
-    const hospitalsWithSpecs = hospitalsData.map((h) => ({
+    const hospitalsWithSpecs = hospitalsData.map((h, idx) => ({
       ...h,
+      description: `${h.name} is a premier healthcare institution in ${h.city}, equipped with modern diagnostic facilities, comprehensive emergency trauma response, and multi-disciplinary specialty departments.`,
+      hospitalType: idx % 3 === 0 ? 'Super-Specialty' : idx % 3 === 1 ? 'Multi-Specialty' : 'Private',
       specialties: createdSpecs.map((s) => s._id),
     }));
     const createdHospitals = await Hospital.insertMany(hospitalsWithSpecs);
@@ -484,6 +486,12 @@ export const seedDatabase = async () => {
         consultationFee: doc.consultationFee,
         languages: doc.languages,
         bio: doc.bio,
+        services: [
+          `${doc.specialty} Consultation`,
+          'Diagnostic Review',
+          'Preventive Health Assessment',
+          'Follow-up Care Plan',
+        ],
         verificationStatus: 'approved',
         rating: doc.rating,
         reviewCount: doc.reviewCount,
@@ -500,6 +508,57 @@ export const seedDatabase = async () => {
 
       createdDoctors.push(doctorDoc);
     }
+
+    // Seed 1 Pending Doctor and 1 Rejected Doctor for security & visibility testing
+    const pendingUser = await User.create({
+      fullName: 'Dr. Karthik Pending',
+      email: 'dr.pending@mediconnect.com',
+      phone: '+91 9840199991',
+      password: 'Doctor@123456',
+      role: 'doctor',
+      isActive: true,
+    });
+    await Doctor.create({
+      user: pendingUser._id,
+      qualification: 'MBBS, MD (General Medicine)',
+      specialization: createdSpecs[0]._id,
+      specialtyName: createdSpecs[0].name,
+      experience: 4,
+      hospital: createdHospitals[0]._id,
+      hospitalName: createdHospitals[0].name,
+      consultationFee: 400,
+      languages: ['English', 'Tamil'],
+      bio: 'Junior resident awaiting medical board document verification.',
+      verificationStatus: 'pending',
+      rating: 4.0,
+      reviewCount: 0,
+      isAvailable: false,
+    });
+
+    const rejectedUser = await User.create({
+      fullName: 'Dr. Rajesh Rejected',
+      email: 'dr.rejected@mediconnect.com',
+      phone: '+91 9840199992',
+      password: 'Doctor@123456',
+      role: 'doctor',
+      isActive: true,
+    });
+    await Doctor.create({
+      user: rejectedUser._id,
+      qualification: 'BAMS (Unverified Certificate)',
+      specialization: createdSpecs[0]._id,
+      specialtyName: createdSpecs[0].name,
+      experience: 1,
+      hospital: createdHospitals[0]._id,
+      hospitalName: createdHospitals[0].name,
+      consultationFee: 250,
+      languages: ['English'],
+      bio: 'Application rejected due to incomplete credential submissions.',
+      verificationStatus: 'rejected',
+      rating: 3.0,
+      reviewCount: 0,
+      isAvailable: false,
+    });
 
     console.log('[Seed] Seeding patient appointments, reviews, saved items & notifications...');
     // Seed Appointments for Patient

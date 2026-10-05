@@ -1,9 +1,11 @@
 import React from 'react';
-import { Star, MapPin, Award, Calendar, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Star, MapPin, Award, Calendar, Clock, ShieldCheck, ArrowRight, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Badge from './Badge';
 import Button from './Button';
 
 export default function DoctorCard({
+  id,
   name,
   specialization,
   qualification,
@@ -15,18 +17,23 @@ export default function DoctorCard({
   nextAvailable = 'Available Tomorrow',
   consultationFee,
   image,
+  languages = [],
   verificationStatus = 'approved',
   isDemo = false,
+  isSaved = false,
+  onToggleSave,
   onViewProfile,
   onBookAppointment,
 }) {
+  const profileUrl = id ? `/doctor/${id}` : '#';
+
   return (
     <div className="p-2 sm:p-2.5 rounded-3xl bg-slate-200/50 backdrop-blur-md shadow-card border border-white/60 hover:border-brand-300 transition-all duration-300 flex flex-col h-full group">
-      <div className="bg-white rounded-[1.35rem] p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between h-full space-y-5">
+      <div className="bg-white rounded-[1.35rem] p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between h-full space-y-4">
         
         {/* Top Info Header */}
-        <div className="flex items-start gap-4">
-          <div className="relative shrink-0">
+        <div className="flex items-start gap-3.5">
+          <Link to={profileUrl} className="relative shrink-0 block">
             <img
               src={
                 image ||
@@ -43,23 +50,39 @@ export default function DoctorCard({
                 <ShieldCheck className="w-3.5 h-3.5" />
               </div>
             )}
-          </div>
+          </Link>
 
           <div className="space-y-1 flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-1.5">
               <Badge variant="teal" size="sm">
                 {specialization}
               </Badge>
-              {isDemo && (
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Preview
-                </span>
+
+              {onToggleSave && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleSave(id);
+                  }}
+                  title={isSaved ? 'Remove from saved' : 'Save doctor'}
+                  className={`p-1.5 rounded-xl border transition-colors ${
+                    isSaved
+                      ? 'bg-rose-50 border-rose-200 text-rose-600'
+                      : 'border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+                </button>
               )}
             </div>
 
-            <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 truncate">
-              {name}
-            </h3>
+            <Link to={profileUrl} className="block group-hover:text-brand-600 transition-colors">
+              <h3 className="font-display font-bold text-base text-slate-900 truncate">
+                {name}
+              </h3>
+            </Link>
 
             {qualification && (
               <p className="text-xs text-slate-500 truncate">{qualification}</p>
@@ -68,10 +91,10 @@ export default function DoctorCard({
             <div className="flex items-center gap-2 pt-0.5 text-xs text-slate-600">
               <span className="flex items-center gap-1 font-bold text-amber-600">
                 <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                {rating.toFixed(1)}
+                {Number(rating).toFixed(1)}
               </span>
               {reviewCount > 0 && (
-                <span className="text-[11px] text-slate-400">({reviewCount} reviews)</span>
+                <span className="text-[11px] text-slate-400">({reviewCount})</span>
               )}
               <span className="text-slate-300">•</span>
               <span className="font-medium">{experience} yrs exp</span>
@@ -84,25 +107,15 @@ export default function DoctorCard({
           {hospital && (
             <div className="flex items-center gap-2 font-medium truncate">
               <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="truncate">{hospital}</span>
+              <span className="truncate">{typeof hospital === 'object' ? hospital.name : hospital}</span>
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-1">
-            {distance && (
-              <div className="flex items-center gap-1 font-semibold text-brand-700">
-                <MapPin className="w-3.5 h-3.5 text-brand-600" />
-                <span>{distance}</span>
-              </div>
-            )}
-
-            {nextAvailable && (
-              <div className="flex items-center gap-1 text-emerald-700 font-medium ml-auto">
-                <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{nextAvailable}</span>
-              </div>
-            )}
-          </div>
+          {languages && languages.length > 0 && (
+            <div className="text-[11px] text-slate-500 truncate">
+              Languages: {languages.join(', ')}
+            </div>
+          )}
         </div>
 
         {/* Action Row */}
@@ -117,14 +130,17 @@ export default function DoctorCard({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="dark"
-              onClick={onViewProfile}
-              trailingIcon={ArrowRight}
-            >
-              View Profile
-            </Button>
+            {onViewProfile ? (
+              <Button size="sm" variant="dark" onClick={onViewProfile} trailingIcon={ArrowRight}>
+                View Profile
+              </Button>
+            ) : (
+              <Link to={profileUrl}>
+                <Button size="sm" variant="dark" trailingIcon={ArrowRight}>
+                  View Profile
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 

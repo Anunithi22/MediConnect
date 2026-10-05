@@ -10,7 +10,9 @@ import LandingPage from './pages/LandingPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import AboutPage from './pages/AboutPage';
 import FindDoctorPage from './pages/FindDoctorPage';
+import DoctorProfilePage from './pages/DoctorProfilePage';
 import FindHospitalPage from './pages/FindHospitalPage';
+import HospitalProfilePage from './pages/HospitalProfilePage';
 import AiSearchPage from './pages/AiSearchPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
@@ -83,7 +85,9 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/find-doctor" element={<FindDoctorPage />} />
+          <Route path="/doctor/:id" element={<DoctorProfilePage />} />
           <Route path="/find-hospital" element={<FindHospitalPage />} />
+          <Route path="/hospital/:id" element={<HospitalProfilePage />} />
           <Route path="/patient/ai-search" element={<AiSearchPage />} />
 
           {/* Auth Routes with redirection if already logged in */}

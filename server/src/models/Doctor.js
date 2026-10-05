@@ -22,7 +22,6 @@ const doctorSchema = new mongoose.Schema(
     specialtyName: {
       type: String,
       required: true,
-      index: true,
       trim: true,
     },
     experience: {
@@ -76,11 +75,26 @@ const doctorSchema = new mongoose.Schema(
       type: String,
       default: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400',
     },
+    services: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Indexes for high performance doctor discovery
+doctorSchema.index({ verificationStatus: 1, isAvailable: 1 });
+doctorSchema.index({ specialization: 1, verificationStatus: 1 });
+doctorSchema.index({ hospital: 1, verificationStatus: 1 });
+doctorSchema.index({ experience: 1 });
+doctorSchema.index({ consultationFee: 1 });
+doctorSchema.index({ rating: -1, reviewCount: -1 });
+doctorSchema.index({ languages: 1 });
+doctorSchema.index({ specialtyName: 1 });
+doctorSchema.index({ hospitalName: 1 });
 
 const Doctor = mongoose.models.Doctor || mongoose.model('Doctor', doctorSchema);
 export default Doctor;

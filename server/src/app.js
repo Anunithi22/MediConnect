@@ -13,6 +13,9 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import savedDoctorRoutes from './routes/savedDoctorRoutes.js';
 import savedHospitalRoutes from './routes/savedHospitalRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import doctorRoutes from './routes/doctorRoutes.js';
+import hospitalRoutes from './routes/hospitalRoutes.js';
+import specializationRoutes from './routes/specializationRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -76,6 +79,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/saved-doctors', savedDoctorRoutes);
 app.use('/api/saved-hospitals', savedHospitalRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/hospitals', hospitalRoutes);
+app.use('/api/specializations', specializationRoutes);
 
 // Root route
 app.get('/', (req, res) => {

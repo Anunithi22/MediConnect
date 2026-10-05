@@ -1,28 +1,37 @@
 import React from 'react';
-import { Building2, Star, MapPin, Stethoscope, ShieldCheck, HeartPulse, ArrowRight } from 'lucide-react';
+import { Building2, Star, MapPin, HeartPulse, ArrowRight, Heart, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Badge from './Badge';
 import Button from './Button';
 
 export default function HospitalCard({
+  id,
   name,
+  hospitalType,
   rating = 4.8,
+  reviewCount = 0,
   address,
+  city,
   distance,
   specialties = [],
   facilities = [],
   image,
-  doctorCount = 12,
+  doctorCount = 0,
   emergencyService = true,
   isDemo = false,
+  isSaved = false,
+  onToggleSave,
   onViewHospital,
   onFindDoctors,
 }) {
+  const profileUrl = id ? `/hospital/${id}` : '#';
+
   return (
     <div className="p-2 sm:p-2.5 rounded-3xl bg-slate-200/50 backdrop-blur-md shadow-card border border-white/60 hover:border-brand-300 transition-all duration-300 flex flex-col h-full group">
-      <div className="bg-white rounded-[1.35rem] p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between h-full space-y-5">
+      <div className="bg-white rounded-[1.35rem] p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between h-full space-y-4">
         
         {/* Hospital Image Banner */}
-        <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-200">
+        <Link to={profileUrl} className="relative h-44 rounded-2xl overflow-hidden border border-slate-200 block">
           <img
             src={
               image ||
@@ -41,17 +50,33 @@ export default function HospitalCard({
                 <span>24/7 Emergency</span>
               </span>
             )}
-            {isDemo && (
+            {hospitalType && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-900/80 text-white">
-                Preview
+                {hospitalType}
               </span>
             )}
           </div>
 
+          {onToggleSave && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSave(id);
+              }}
+              title={isSaved ? 'Remove from saved' : 'Save hospital'}
+              className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 backdrop-blur-md text-slate-700 hover:text-rose-600 shadow-xs transition-colors"
+            >
+              <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+            </button>
+          )}
+
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
             <span className="flex items-center gap-1 text-xs font-bold bg-slate-900/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              <span>{rating.toFixed(1)}</span>
+              <span>{Number(rating).toFixed(1)}</span>
+              {reviewCount > 0 && <span className="text-[10px] text-slate-300">({reviewCount})</span>}
             </span>
 
             {distance && (
@@ -61,17 +86,19 @@ export default function HospitalCard({
               </span>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Content Details */}
         <div className="space-y-2 flex-1">
-          <h3 className="font-display font-bold text-lg text-slate-900 leading-tight">
-            {name}
-          </h3>
+          <Link to={profileUrl} className="block group-hover:text-brand-600 transition-colors">
+            <h3 className="font-display font-bold text-lg text-slate-900 leading-tight truncate">
+              {name}
+            </h3>
+          </Link>
 
           <p className="text-xs text-slate-500 line-clamp-1 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>{address}</span>
+            <span>{address || city || 'Chennai'}</span>
           </p>
 
           {/* Specialties Pills */}
@@ -79,7 +106,7 @@ export default function HospitalCard({
             <div className="flex flex-wrap gap-1.5 pt-1">
               {specialties.slice(0, 3).map((spec, idx) => (
                 <Badge key={idx} variant="slate" size="sm">
-                  {spec}
+                  {typeof spec === 'object' ? spec.name : spec}
                 </Badge>
               ))}
               {specialties.length > 3 && (
@@ -92,27 +119,32 @@ export default function HospitalCard({
 
           {/* Facility Highlights */}
           {facilities.length > 0 && (
-            <div className="pt-2 text-[11px] text-slate-500 space-y-1">
-              <span className="font-semibold text-slate-700 block">Facilities:</span>
-              <p className="line-clamp-1">{facilities.slice(0, 4).join(' • ')}</p>
+            <div className="pt-1.5 text-[11px] text-slate-500">
+              <span className="font-semibold text-slate-700">Facilities: </span>
+              <span>{facilities.slice(0, 3).join(' • ')}</span>
             </div>
           )}
         </div>
 
         {/* Action Row */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-            <Stethoscope className="w-4 h-4 text-brand-600" />
-            <span>{doctorCount} Specialists</span>
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Users className="w-3.5 h-3.5 text-slate-400" />
+            <span className="font-semibold text-slate-800">{doctorCount > 0 ? `${doctorCount} doctors` : 'Verified facility'}</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={onViewHospital}>
-              View Hospital
-            </Button>
-            <Button size="sm" variant="dark" onClick={onFindDoctors} trailingIcon={ArrowRight}>
-              Find Doctors
-            </Button>
+            {onViewHospital ? (
+              <Button size="sm" variant="dark" onClick={onViewHospital} trailingIcon={ArrowRight}>
+                View Facility
+              </Button>
+            ) : (
+              <Link to={profileUrl}>
+                <Button size="sm" variant="dark" trailingIcon={ArrowRight}>
+                  View Facility
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
