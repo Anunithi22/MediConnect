@@ -20,6 +20,10 @@ import {
   Sparkles,
   Info,
   ArrowRight,
+  Scale,
+  Video,
+  GraduationCap,
+  Briefcase,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -183,6 +187,14 @@ export default function DoctorProfilePage() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={`/compare?type=doctors&ids=${doctor.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Scale className="w-3.5 h-3.5 text-brand-600" />
+            <span>Compare</span>
+          </Link>
+
           <button
             onClick={handleShare}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
@@ -248,6 +260,23 @@ export default function DoctorProfilePage() {
                   {doctor.qualification}
                 </p>
               )}
+
+              {/* Consultation Modes */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-1.5">
+                {doctor.consultationModes?.map((mode, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold"
+                  >
+                    {mode.toLowerCase().includes('online') ? (
+                      <Video className="w-3 h-3 text-brand-600" />
+                    ) : (
+                      <Building2 className="w-3 h-3 text-emerald-600" />
+                    )}
+                    <span>{mode} Consultation</span>
+                  </span>
+                ))}
+              </div>
             </div>
 
             {/* Hospital Affiliation */}
@@ -330,6 +359,105 @@ export default function DoctorProfilePage() {
               {doctor.bio ||
                 `Dr. ${doctor.name} is a certified specialist in ${doctor.specialization} with over ${doctor.experience} years of clinical practice. Dedicated to delivering patient-centric care, evidence-based diagnoses, and individualized treatment planning at ${doctor.hospital?.name || 'accredited clinical centers'}.`}
             </p>
+          </section>
+
+          {/* Education & Qualifications */}
+          {doctor.education && doctor.education.length > 0 && (
+            <section className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3">
+              <h3 className="font-display font-bold text-lg text-slate-900 flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-brand-600" />
+                <span>Education & Medical Qualifications</span>
+              </h3>
+              <div className="space-y-2">
+                {doctor.education.map((edu, idx) => (
+                  <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-slate-800">{edu}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Experience History */}
+          {doctor.experienceHistory && doctor.experienceHistory.length > 0 && (
+            <section className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3">
+              <h3 className="font-display font-bold text-lg text-slate-900 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-brand-600" />
+                <span>Clinical Appointments & Career Milestones</span>
+              </h3>
+              <div className="space-y-2">
+                {doctor.experienceHistory.map((exp, idx) => (
+                  <div key={idx} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-slate-800">{exp}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* OPD Schedule & Availability */}
+          <section className="p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg text-slate-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-brand-600" />
+                <span>Hospital OPD Consultation Schedule</span>
+              </h3>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                Active Schedule
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  OPD Shift Hours
+                </span>
+                <span className="font-display font-bold text-xs sm:text-sm text-slate-900 block">
+                  {doctor.schedule?.workingHours?.start || '09:00 AM'} – {doctor.schedule?.workingHours?.end || '05:00 PM'}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Break Interval
+                </span>
+                <span className="font-display font-bold text-xs sm:text-sm text-slate-900 block">
+                  {doctor.schedule?.breakTime?.start || '01:00 PM'} – {doctor.schedule?.breakTime?.end || '02:00 PM'}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Slot Duration
+                </span>
+                <span className="font-display font-bold text-xs sm:text-sm text-slate-900 block">
+                  {doctor.schedule?.slotDurationMinutes || 30} Mins / Patient
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <span className="text-xs font-bold text-slate-700 block mb-2">Weekly Consultation Days</span>
+              <div className="flex flex-wrap gap-1.5">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => {
+                  const isActive = doctor.schedule?.workingDays?.includes(day);
+                  return (
+                    <span
+                      key={day}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition-colors ${
+                        isActive
+                          ? 'bg-brand-50 border-brand-200 text-brand-800'
+                          : 'bg-slate-100 border-slate-200 text-slate-400 opacity-60'
+                      }`}
+                    >
+                      {day.slice(0, 3)}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
           </section>
 
           {/* Clinical Services */}

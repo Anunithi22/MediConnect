@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Doctor, User, Specialization, Hospital } from '../models/index.js';
+import { Doctor, User, Specialization, Hospital, Availability } from '../models/index.js';
 
 /**
  * Helper to escape regex special characters
@@ -11,7 +11,7 @@ const escapeRegex = (string) => {
 /**
  * Transform Doctor document into a clean, safe public representation
  */
-export const transformPublicDoctor = (doc) => {
+export const transformPublicDoctor = (doc, availability = null) => {
   if (!doc) return null;
 
   const user = doc.user || {};
@@ -35,10 +35,35 @@ export const transformPublicDoctor = (doc) => {
       address: typeof hosp === 'object' ? hosp.address : '',
       rating: typeof hosp === 'object' ? hosp.rating : null,
       phone: typeof hosp === 'object' ? hosp.phone : '',
+      totalBeds: typeof hosp === 'object' ? hosp.totalBeds : undefined,
     },
     rating: doc.rating || 4.8,
     reviewCount: doc.reviewCount || 0,
     consultationFee: doc.consultationFee || 0,
+    consultationModes: Array.isArray(doc.consultationModes) && doc.consultationModes.length > 0
+      ? doc.consultationModes
+      : ['In-person', 'Online'],
+    education: Array.isArray(doc.education) && doc.education.length > 0
+      ? doc.education
+      : [`${doc.qualification || 'MBBS'} - Recognized Medical University`],
+    experienceHistory: Array.isArray(doc.experienceHistory) && doc.experienceHistory.length > 0
+      ? doc.experienceHistory
+      : [`Clinical Consultant at ${typeof hosp === 'object' && hosp.name ? hosp.name : doc.hospitalName || 'Recognized Medical Center'} (${doc.experience || 5} yrs)`],
+    schedule: availability
+      ? {
+          workingDays: availability.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+          workingHours: availability.workingHours || { start: '09:00', end: '17:00' },
+          breakTime: availability.breakTime || { start: '13:00', end: '14:00' },
+          slotDurationMinutes: availability.slotDurationMinutes || 30,
+          summary: `${(availability.workingDays && availability.workingDays.length > 0) ? availability.workingDays[0] + ' - ' + availability.workingDays[availability.workingDays.length - 1] : 'Mon - Sat'} (${availability.workingHours?.start || '09:00'} - ${availability.workingHours?.end || '17:00'})`,
+        }
+      : {
+          workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+          workingHours: { start: '09:00', end: '17:00' },
+          breakTime: { start: '13:00', end: '14:00' },
+          slotDurationMinutes: 30,
+          summary: 'Monday - Saturday (09:00 - 17:00)',
+        },
     languages: Array.isArray(doc.languages) ? doc.languages : ['English'],
     bio: doc.bio || '',
     services: Array.isArray(doc.services) && doc.services.length > 0
@@ -258,5 +283,74 @@ export const getDoctorById = async (id, requestingUser = null) => {
     }
   }
 
-  return transformPublicDoctor(doctor);
+  const availability = await Availability.findOne({ doctor: doctor._id });
+
+  return transformPublicDoctor(doctor, availability);
 };
+
+/**
+ * Compare 2 to 3 doctors side-by-side with security checks and availability schedules
+ */
+export const compareDoctors = async (doctorIds = [], requestingUser = null) => {
+  if (!Array.isArray(doctorIds) || doctorIds.length < 2 || doctorIds.length > 3) {
+    const error = new Error('You must select between 2 and 3 doctors to compare.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  for (const id of doctorIds) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const error = new Error(`Invalid doctor ID: ${id}`);
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  const query = {
+    _id: { $in: doctorIds },
+  };
+
+  const isAdmin = requestingUser && requestingUser.role === 'admin';
+  if (!isAdmin) {
+    query.verificationStatus = 'approved';
+  }
+
+  const doctors = await Doctor.find(query)
+    .populate('user', 'fullName email phone avatar isActive')
+    .populate('specialization', 'name category icon description keywords')
+    .populate('hospital', 'name address city state pincode phone email rating emergencyService facilities image description totalBeds');
+
+  // Filter out doctors whose user is deactivated
+  const activeDoctors = isAdmin
+    ? doctors
+    : doctors.filter((doc) => doc.user && doc.user.isActive !== false);
+
+  if (activeDoctors.length < 2) {
+    const error = new Error('At least 2 active approved doctors must be available for comparison.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Fetch availabilities
+  const availabilities = await Availability.find({
+    doctor: { $in: activeDoctors.map((d) => d._id) },
+  });
+  const availMap = new Map();
+  availabilities.forEach((a) => availMap.set(a.doctor.toString(), a));
+
+  // Maintain original selection order
+  const docMap = new Map();
+  activeDoctors.forEach((doc) => {
+    docMap.set(doc._id.toString(), transformPublicDoctor(doc, availMap.get(doc._id.toString())));
+  });
+
+  const orderedResult = [];
+  for (const id of doctorIds) {
+    if (docMap.has(id.toString())) {
+      orderedResult.push(docMap.get(id.toString()));
+    }
+  }
+
+  return orderedResult;
+};
+

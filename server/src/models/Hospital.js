@@ -83,6 +83,11 @@ const hospitalSchema = new mongoose.Schema(
       default: 'Multi-Specialty',
       index: true,
     },
+    totalBeds: {
+      type: Number,
+      default: 350,
+      min: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,

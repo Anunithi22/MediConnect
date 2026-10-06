@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   LayoutDashboard,
   Bell,
+  Scale,
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useAuth } from '../../context/AuthContext';
@@ -48,6 +49,7 @@ export default function Navbar() {
     { name: t('nav.home'), path: '/', icon: HeartHandshake },
     { name: t('nav.findDoctor'), path: '/find-doctor', icon: Search },
     { name: t('nav.findHospital'), path: '/find-hospital', icon: Building2 },
+    { name: 'Compare', path: '/compare', icon: Scale },
     { name: t('nav.aiAssistant'), path: '/patient/ai-search', icon: Sparkles, badge: 'AI' },
     { name: t('nav.howItWorks'), path: '/how-it-works', icon: HelpCircle },
     { name: t('nav.about'), path: '/about', icon: Info },

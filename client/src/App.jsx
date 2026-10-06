@@ -13,6 +13,7 @@ import FindDoctorPage from './pages/FindDoctorPage';
 import DoctorProfilePage from './pages/DoctorProfilePage';
 import FindHospitalPage from './pages/FindHospitalPage';
 import HospitalProfilePage from './pages/HospitalProfilePage';
+import ComparisonPage from './pages/ComparisonPage';
 import AiSearchPage from './pages/AiSearchPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
@@ -88,6 +89,7 @@ export default function App() {
           <Route path="/doctor/:id" element={<DoctorProfilePage />} />
           <Route path="/find-hospital" element={<FindHospitalPage />} />
           <Route path="/hospital/:id" element={<HospitalProfilePage />} />
+          <Route path="/compare" element={<ComparisonPage />} />
           <Route path="/patient/ai-search" element={<AiSearchPage />} />
 
           {/* Auth Routes with redirection if already logged in */}

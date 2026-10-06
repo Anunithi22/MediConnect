@@ -140,8 +140,8 @@ export const validateHospitalQuery = [
     .withMessage('Emergency filter must be a boolean (true or false).'),
   query('sort')
     .optional()
-    .isIn(['rating', 'name', 'newest'])
-    .withMessage('Invalid sort parameter. Supported: rating, name, newest.'),
+    .isIn(['recommended', 'rating', 'name', 'beds', 'newest'])
+    .withMessage('Invalid sort parameter. Supported: recommended, rating, name, beds, newest.'),
   handleValidationErrors,
 ];
 
@@ -156,3 +156,26 @@ export const validateSpecializationQuery = [
     .withMessage('Search query cannot exceed 100 characters.'),
   handleValidationErrors,
 ];
+
+/**
+ * Comparison query validation rules (2 to 3 IDs)
+ */
+export const validateCompareQuery = [
+  query('ids')
+    .notEmpty()
+    .withMessage('Please provide comma-separated IDs to compare.')
+    .custom((val) => {
+      const ids = val.split(',').map((s) => s.trim()).filter(Boolean);
+      if (ids.length < 2 || ids.length > 3) {
+        throw new Error('Please select between 2 and 3 items to compare.');
+      }
+      for (const id of ids) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+          throw new Error(`Invalid ID format: ${id}`);
+        }
+      }
+      return true;
+    }),
+  handleValidationErrors,
+];
+

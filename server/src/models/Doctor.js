@@ -79,6 +79,18 @@ const doctorSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    consultationModes: {
+      type: [String],
+      default: ['In-person', 'Online'],
+    },
+    education: {
+      type: [String],
+      default: [],
+    },
+    experienceHistory: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

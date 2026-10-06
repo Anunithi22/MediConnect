@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, Award, Calendar, Clock, ShieldCheck, ArrowRight, Heart } from 'lucide-react';
+import { Star, MapPin, Award, Calendar, Clock, ShieldCheck, ArrowRight, Heart, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Badge from './Badge';
 import Button from './Button';
@@ -21,6 +21,8 @@ export default function DoctorCard({
   verificationStatus = 'approved',
   isDemo = false,
   isSaved = false,
+  isComparing = false,
+  onToggleCompare,
   onToggleSave,
   onViewProfile,
   onBookAppointment,
@@ -58,24 +60,45 @@ export default function DoctorCard({
                 {specialization}
               </Badge>
 
-              {onToggleSave && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleSave(id);
-                  }}
-                  title={isSaved ? 'Remove from saved' : 'Save doctor'}
-                  className={`p-1.5 rounded-xl border transition-colors ${
-                    isSaved
-                      ? 'bg-rose-50 border-rose-200 text-rose-600'
-                      : 'border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'
-                  }`}
-                >
-                  <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
-                </button>
-              )}
+              <div className="flex items-center gap-1">
+                {onToggleCompare && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onToggleCompare(id);
+                    }}
+                    title={isComparing ? 'Remove from compare' : 'Add to compare'}
+                    className={`p-1.5 rounded-xl border transition-colors ${
+                      isComparing
+                        ? 'bg-brand-50 border-brand-300 text-brand-700'
+                        : 'border-slate-200 text-slate-400 hover:text-brand-600 hover:bg-brand-50/50'
+                    }`}
+                  >
+                    <Scale className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
+                {onToggleSave && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onToggleSave(id);
+                    }}
+                    title={isSaved ? 'Remove from saved' : 'Save doctor'}
+                    className={`p-1.5 rounded-xl border transition-colors ${
+                      isSaved
+                        ? 'bg-rose-50 border-rose-200 text-rose-600'
+                        : 'border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'
+                    }`}
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <Link to={profileUrl} className="block group-hover:text-brand-600 transition-colors">

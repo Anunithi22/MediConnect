@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Star, MapPin, HeartPulse, ArrowRight, Heart, Users } from 'lucide-react';
+import { Building2, Star, MapPin, HeartPulse, ArrowRight, Heart, Users, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Badge from './Badge';
 import Button from './Button';
@@ -20,6 +20,8 @@ export default function HospitalCard({
   emergencyService = true,
   isDemo = false,
   isSaved = false,
+  isComparing = false,
+  onToggleCompare,
   onToggleSave,
   onViewHospital,
   onFindDoctors,
@@ -57,20 +59,41 @@ export default function HospitalCard({
             )}
           </div>
 
-          {onToggleSave && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onToggleSave(id);
-              }}
-              title={isSaved ? 'Remove from saved' : 'Save hospital'}
-              className="absolute top-3 right-3 p-2 rounded-xl bg-white/90 backdrop-blur-md text-slate-700 hover:text-rose-600 shadow-xs transition-colors"
-            >
-              <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
-            </button>
-          )}
+          <div className="absolute top-3 right-3 flex items-center gap-1.5">
+            {onToggleCompare && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleCompare(id);
+                }}
+                title={isComparing ? 'Remove from compare' : 'Add to compare'}
+                className={`p-2 rounded-xl backdrop-blur-md shadow-xs transition-colors flex items-center gap-1 text-[10px] font-bold ${
+                  isComparing
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-white/90 text-slate-700 hover:text-brand-600'
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {onToggleSave && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onToggleSave(id);
+                }}
+                title={isSaved ? 'Remove from saved' : 'Save hospital'}
+                className="p-2 rounded-xl bg-white/90 backdrop-blur-md text-slate-700 hover:text-rose-600 shadow-xs transition-colors"
+              >
+                <Heart className={`w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+              </button>
+            )}
+          </div>
 
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
             <span className="flex items-center gap-1 text-xs font-bold bg-slate-900/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">

@@ -282,10 +282,12 @@ export const seedDatabase = async () => {
     createdSpecs.forEach((s) => specMap.set(s.name, s));
 
     console.log('[Seed] Inserting Hospitals...');
+    const bedCounts = [750, 600, 450, 500, 800, 350, 520, 650, 400, 900];
     const hospitalsWithSpecs = hospitalsData.map((h, idx) => ({
       ...h,
       description: `${h.name} is a premier healthcare institution in ${h.city}, equipped with modern diagnostic facilities, comprehensive emergency trauma response, and multi-disciplinary specialty departments.`,
       hospitalType: idx % 3 === 0 ? 'Super-Specialty' : idx % 3 === 1 ? 'Multi-Specialty' : 'Private',
+      totalBeds: bedCounts[idx % bedCounts.length],
       specialties: createdSpecs.map((s) => s._id),
     }));
     const createdHospitals = await Hospital.insertMany(hospitalsWithSpecs);
@@ -491,6 +493,15 @@ export const seedDatabase = async () => {
           'Diagnostic Review',
           'Preventive Health Assessment',
           'Follow-up Care Plan',
+        ],
+        consultationModes: i % 3 === 0 ? ['In-person'] : ['In-person', 'Online'],
+        education: [
+          `${doc.qualification.split(',')[0]} - Madras Medical College & State Health University`,
+          `Fellowship & Board Certification in ${doc.specialty}`,
+        ],
+        experienceHistory: [
+          `Senior Consultant at ${hospitalObj.name} (${Math.max(1, doc.experience - 4)} yrs)`,
+          `Clinical Specialist & Resident (${Math.min(4, doc.experience)} yrs)`,
         ],
         verificationStatus: 'approved',
         rating: doc.rating,

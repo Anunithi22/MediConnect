@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Scale,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -47,6 +48,7 @@ export default function FindDoctorPage() {
   const [specializations, setSpecializations] = useState([]);
   const [hospitals, setHospitals] = useState([]);
   const [savedDoctorIds, setSavedDoctorIds] = useState(new Set());
+  const [compareDoctorIds, setCompareDoctorIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -190,6 +192,19 @@ export default function FindDoctorPage() {
     } catch (err) {
       toast.error(err.message || 'Unable to update bookmark.');
     }
+  };
+
+  const handleToggleCompare = (doctorId) => {
+    setCompareDoctorIds((prev) => {
+      if (prev.includes(doctorId)) {
+        return prev.filter((id) => id !== doctorId);
+      }
+      if (prev.length >= 3) {
+        toast.error('You can compare a maximum of 3 doctors at once.');
+        return prev;
+      }
+      return [...prev, doctorId];
+    });
   };
 
   return (
@@ -489,6 +504,8 @@ export default function FindDoctorPage() {
                   image={doc.profileImage}
                   isSaved={savedDoctorIds.has(doc.id)}
                   onToggleSave={handleToggleSave}
+                  isComparing={compareDoctorIds.includes(doc.id)}
+                  onToggleCompare={() => handleToggleCompare(doc.id)}
                 />
               ))}
             </div>
@@ -610,6 +627,41 @@ export default function FindDoctorPage() {
                 Apply Filters
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Comparison Dock */}
+      {compareDoctorIds.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-xl bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2.5 truncate">
+            <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div className="truncate">
+              <span className="text-xs font-bold block">
+                Compare Doctors ({compareDoctorIds.length}/3 selected)
+              </span>
+              <span className="text-[11px] text-slate-300 truncate block">
+                {compareDoctorIds.length === 1 ? 'Select 1 more doctor to compare' : 'Ready to compare side-by-side'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setCompareDoctorIds([])}
+              className="text-xs font-semibold text-slate-400 hover:text-white px-2 py-1"
+            >
+              Clear
+            </button>
+
+            <Link to={`/compare?type=doctors&ids=${compareDoctorIds.join(',')}`}>
+              <Button size="sm" variant="primary" trailingIcon={ArrowRight} disabled={compareDoctorIds.length < 2}>
+                Compare Now
+              </Button>
+            </Link>
           </div>
         </div>
       )}

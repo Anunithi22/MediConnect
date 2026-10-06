@@ -12,6 +12,12 @@ export const discoveryService = {
     return res.data;
   },
 
+  compareDoctors: async (ids) => {
+    const paramIds = Array.isArray(ids) ? ids.join(',') : ids;
+    const res = await api.get('/doctors/compare', { params: { ids: paramIds } });
+    return res.data;
+  },
+
   // Hospitals
   getHospitals: async (params = {}) => {
     const res = await api.get('/hospitals', { params });
@@ -25,6 +31,12 @@ export const discoveryService = {
 
   getHospitalDoctors: async (hospitalId, params = {}) => {
     const res = await api.get(`/hospitals/${hospitalId}/doctors`, { params });
+    return res.data;
+  },
+
+  compareHospitals: async (ids) => {
+    const paramIds = Array.isArray(ids) ? ids.join(',') : ids;
+    const res = await api.get('/hospitals/compare', { params: { ids: paramIds } });
     return res.data;
   },
 

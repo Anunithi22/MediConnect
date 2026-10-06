@@ -15,6 +15,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Bed,
+  Scale,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -64,6 +66,7 @@ export default function FindHospitalPage() {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [specializations, setSpecializations] = useState([]);
   const [savedHospitalIds, setSavedHospitalIds] = useState(new Set());
+  const [compareHospitalIds, setCompareHospitalIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -215,6 +218,19 @@ export default function FindHospitalPage() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not update bookmark.');
     }
+  };
+
+  const handleToggleCompare = (hospitalId) => {
+    setCompareHospitalIds((prev) => {
+      if (prev.includes(hospitalId)) {
+        return prev.filter((id) => id !== hospitalId);
+      }
+      if (prev.length >= 3) {
+        toast.error('You can compare a maximum of 3 hospitals at once.');
+        return prev;
+      }
+      return [...prev, hospitalId];
+    });
   };
 
   const handlePageChange = (newPage) => {
@@ -750,6 +766,8 @@ export default function FindHospitalPage() {
                   emergencyService={hospital.emergencyService}
                   isSaved={savedHospitalIds.has((hospital.id || hospital._id).toString())}
                   onToggleSave={() => handleToggleSave((hospital.id || hospital._id).toString())}
+                  isComparing={compareHospitalIds.includes((hospital.id || hospital._id).toString())}
+                  onToggleCompare={() => handleToggleCompare((hospital.id || hospital._id).toString())}
                 />
               ))}
             </div>
@@ -786,6 +804,41 @@ export default function FindHospitalPage() {
           )}
         </main>
       </div>
+
+      {/* Floating Comparison Dock */}
+      {compareHospitalIds.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-xl bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2.5 truncate">
+            <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div className="truncate">
+              <span className="text-xs font-bold block">
+                Compare Hospitals ({compareHospitalIds.length}/3 selected)
+              </span>
+              <span className="text-[11px] text-slate-300 truncate block">
+                {compareHospitalIds.length === 1 ? 'Select 1 more hospital to compare' : 'Ready to compare side-by-side'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setCompareHospitalIds([])}
+              className="text-xs font-semibold text-slate-400 hover:text-white px-2 py-1"
+            >
+              Clear
+            </button>
+
+            <Link to={`/compare?type=hospitals&ids=${compareHospitalIds.join(',')}`}>
+              <Button size="sm" variant="primary" trailingIcon={ArrowRight} disabled={compareHospitalIds.length < 2}>
+                Compare Now
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

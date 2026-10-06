@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Stethoscope,
   ArrowRight,
+  Scale,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -252,6 +253,14 @@ export default function HospitalProfilePage() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={`/compare?type=hospitals&ids=${hospital.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
+          >
+            <Scale className="w-3.5 h-3.5 text-brand-600" />
+            <span>Compare</span>
+          </Link>
+
           <button
             onClick={handleShare}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"

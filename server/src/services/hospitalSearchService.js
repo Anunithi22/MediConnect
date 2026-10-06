@@ -36,6 +36,7 @@ export const transformPublicHospital = (hosp, doctorsCount = null) => {
     emergencyService: hosp.emergencyService !== false,
     rating: hosp.rating || 4.5,
     reviewCount: hosp.reviewCount || 0,
+    totalBeds: hosp.totalBeds !== undefined ? hosp.totalBeds : 350,
     image: hosp.image || 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&q=80&w=600',
     isActive: hosp.isActive !== false,
     doctorsCount: doctorsCount !== null ? doctorsCount : undefined,
@@ -131,10 +132,14 @@ export const searchHospitals = async (queryParams = {}) => {
     case 'name':
       sortCriteria = { name: 1 };
       break;
+    case 'beds':
+      sortCriteria = { totalBeds: -1 };
+      break;
     case 'newest':
       sortCriteria = { createdAt: -1 };
       break;
     case 'rating':
+    case 'recommended':
     default:
       sortCriteria = { rating: -1, reviewCount: -1 };
       break;
@@ -236,3 +241,68 @@ export const getHospitalDoctors = async (hospitalId, queryParams = {}) => {
     },
   };
 };
+
+/**
+ * Compare 2 to 3 hospitals side-by-side with doctor counts and populated specialties
+ */
+export const compareHospitals = async (hospitalIds = []) => {
+  if (!Array.isArray(hospitalIds) || hospitalIds.length < 2 || hospitalIds.length > 3) {
+    const error = new Error('You must select between 2 and 3 hospitals to compare.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  for (const id of hospitalIds) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      const error = new Error(`Invalid hospital ID: ${id}`);
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  const hospitals = await Hospital.find({
+    _id: { $in: hospitalIds },
+    isActive: true,
+  }).populate('specialties', 'name icon category');
+
+  if (hospitals.length < 2) {
+    const error = new Error('At least 2 active hospitals must be available for comparison.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Compute doctors count for each compared hospital
+  const doctorCounts = await Doctor.aggregate([
+    {
+      $match: {
+        hospital: { $in: hospitals.map((h) => h._id) },
+        verificationStatus: 'approved',
+      },
+    },
+    {
+      $group: {
+        _id: '$hospital',
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const countMap = new Map();
+  doctorCounts.forEach((dc) => countMap.set(dc._id.toString(), dc.count));
+
+  const hospMap = new Map();
+  hospitals.forEach((hosp) => {
+    const docCount = countMap.get(hosp._id.toString()) || 0;
+    hospMap.set(hosp._id.toString(), transformPublicHospital(hosp, docCount));
+  });
+
+  const orderedResult = [];
+  for (const id of hospitalIds) {
+    if (hospMap.has(id.toString())) {
+      orderedResult.push(hospMap.get(id.toString()));
+    }
+  }
+
+  return orderedResult;
+};
+

@@ -44,3 +44,27 @@ export const getDoctorById = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Compare 2 to 3 doctors side-by-side
+ * @route   GET /api/doctors/compare?ids=id1,id2,id3
+ * @access  Public
+ */
+export const compareDoctors = async (req, res, next) => {
+  try {
+    const rawIds = req.query.ids;
+    const ids = Array.isArray(rawIds)
+      ? rawIds
+      : (typeof rawIds === 'string' ? rawIds.split(',').map((s) => s.trim()).filter(Boolean) : []);
+
+    const doctors = await doctorSearchService.compareDoctors(ids, req.user);
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -62,3 +62,27 @@ export const getHospitalDoctors = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Compare 2 to 3 hospitals side-by-side
+ * @route   GET /api/hospitals/compare?ids=id1,id2,id3
+ * @access  Public
+ */
+export const compareHospitals = async (req, res, next) => {
+  try {
+    const rawIds = req.query.ids;
+    const ids = Array.isArray(rawIds)
+      ? rawIds
+      : (typeof rawIds === 'string' ? rawIds.split(',').map((s) => s.trim()).filter(Boolean) : []);
+
+    const hospitals = await hospitalSearchService.compareHospitals(ids);
+    res.status(200).json({
+      success: true,
+      count: hospitals.length,
+      data: hospitals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
