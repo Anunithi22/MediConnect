@@ -1,6 +1,16 @@
 import mongoose from 'mongoose';
 import { Hospital, Doctor, Specialization } from '../models/index.js';
 import { transformPublicDoctor } from './doctorSearchService.js';
+import {
+  parseCoordinates,
+  parseRadius,
+  parseUnit,
+  metersToUnit,
+  unitToMeters,
+  formatDistance,
+  calculateHaversineDistance,
+  buildGeoNearStage,
+} from './locationService.js';
 
 const escapeRegex = (string) => {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -9,8 +19,22 @@ const escapeRegex = (string) => {
 /**
  * Transform Hospital document into a clean, safe public representation
  */
-export const transformPublicHospital = (hosp, doctorsCount = null) => {
+export const transformPublicHospital = (hosp, doctorsCount = null, distanceInfo = null) => {
   if (!hosp) return null;
+
+  let distanceObj = distanceInfo;
+  if (!distanceObj) {
+    if (hosp.distance !== undefined && hosp.distanceUnit !== undefined) {
+      distanceObj = {
+        distance: hosp.distance,
+        distanceUnit: hosp.distanceUnit,
+        formatted: `${hosp.distance} ${hosp.distanceUnit}`,
+      };
+    } else if (hosp.distanceMeters !== undefined) {
+      const dist = metersToUnit(hosp.distanceMeters, 'km');
+      distanceObj = formatDistance(dist, 'km');
+    }
+  }
 
   return {
     id: hosp._id.toString(),
@@ -23,6 +47,13 @@ export const transformPublicHospital = (hosp, doctorsCount = null) => {
     pincode: hosp.pincode || '',
     latitude: hosp.latitude,
     longitude: hosp.longitude,
+    location: hosp.location || {
+      type: 'Point',
+      coordinates: [hosp.longitude, hosp.latitude],
+    },
+    distance: distanceObj?.distance !== undefined ? distanceObj.distance : undefined,
+    distanceUnit: distanceObj?.distanceUnit !== undefined ? distanceObj.distanceUnit : undefined,
+    distanceFormatted: distanceObj?.formatted !== undefined ? distanceObj.formatted : undefined,
     phone: hosp.phone || '',
     email: hosp.email || '',
     specialties: Array.isArray(hosp.specialties)
@@ -45,7 +76,7 @@ export const transformPublicHospital = (hosp, doctorsCount = null) => {
 };
 
 /**
- * Search and filter hospitals
+ * Search and filter hospitals (with optional geospatial querying)
  */
 export const searchHospitals = async (queryParams = {}) => {
   const {
@@ -60,7 +91,11 @@ export const searchHospitals = async (queryParams = {}) => {
     hospitalType,
     ratingMin,
     emergency,
-    sort = 'rating',
+    latitude,
+    longitude,
+    radius,
+    unit,
+    sort = 'recommended',
   } = queryParams;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -126,7 +161,87 @@ export const searchHospitals = async (queryParams = {}) => {
     ];
   }
 
-  // 8. Sorting
+  // Check if location coordinates were provided
+  const coords = parseCoordinates(latitude, longitude);
+  const distUnit = parseUnit(unit);
+
+  if (coords) {
+    const radiusKm = parseRadius(radius);
+    const radiusMeters = unitToMeters(radiusKm, distUnit);
+
+    const geoNearStage = buildGeoNearStage({
+      lat: coords.lat,
+      lng: coords.lng,
+      maxDistanceMeters: radiusMeters,
+      query,
+    });
+
+    let sortStage = null;
+    if (sort === 'rating' || sort === 'recommended') {
+      sortStage = { $sort: { rating: -1, reviewCount: -1 } };
+    } else if (sort === 'beds') {
+      sortStage = { $sort: { totalBeds: -1 } };
+    } else if (sort === 'name') {
+      sortStage = { $sort: { name: 1 } };
+    } else if (sort === 'newest') {
+      sortStage = { $sort: { createdAt: -1 } };
+    }
+    // If sort === 'nearest', $geoNear already outputs in ascending order of distance!
+
+    const pipeline = [
+      geoNearStage,
+      ...(sortStage ? [sortStage] : []),
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: skip },
+            { $limit: limitNum },
+            {
+              $lookup: {
+                from: 'specializations',
+                localField: 'specialties',
+                foreignField: '_id',
+                as: 'specialties',
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    const aggregateResult = await Hospital.aggregate(pipeline);
+    const total = aggregateResult[0]?.metadata[0]?.total || 0;
+    const rawHospitals = aggregateResult[0]?.data || [];
+
+    const transformedHospitals = rawHospitals.map((h) => {
+      const distConverted = metersToUnit(h.distanceMeters, distUnit);
+      const distObj = formatDistance(distConverted, distUnit);
+      return transformPublicHospital(h, null, distObj);
+    });
+
+    const totalPages = Math.ceil(total / limitNum) || 1;
+
+    return {
+      data: transformedHospitals,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1,
+      },
+      locationSearch: {
+        latitude: coords.lat,
+        longitude: coords.lng,
+        radius: radiusKm,
+        unit: distUnit,
+      },
+    };
+  }
+
+  // Non-location fallback: standard MongoDB query
   let sortCriteria = {};
   switch (sort) {
     case 'name':
@@ -138,6 +253,7 @@ export const searchHospitals = async (queryParams = {}) => {
     case 'newest':
       sortCriteria = { createdAt: -1 };
       break;
+    case 'nearest':
     case 'rating':
     case 'recommended':
     default:
@@ -171,14 +287,16 @@ export const searchHospitals = async (queryParams = {}) => {
 };
 
 /**
- * Get single hospital by ID with doctors count
+ * Get single hospital by ID with doctors count & optional distance calculation
  */
-export const getHospitalById = async (id) => {
+export const getHospitalById = async (id, queryParams = {}) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     const error = new Error('Invalid hospital ID.');
     error.statusCode = 400;
     throw error;
   }
+
+  const { latitude, longitude, unit } = queryParams;
 
   const [hospital, doctorsCount] = await Promise.all([
     Hospital.findOne({ _id: id, isActive: true }).populate('specialties', 'name icon category description'),
@@ -191,7 +309,15 @@ export const getHospitalById = async (id) => {
     throw error;
   }
 
-  return transformPublicHospital(hospital, doctorsCount);
+  let distanceInfo = null;
+  const coords = parseCoordinates(latitude, longitude);
+  if (coords && hospital.latitude !== undefined && hospital.longitude !== undefined) {
+    const distUnit = parseUnit(unit);
+    const dist = calculateHaversineDistance(coords.lat, coords.lng, hospital.latitude, hospital.longitude, distUnit);
+    distanceInfo = formatDistance(dist, distUnit);
+  }
+
+  return transformPublicHospital(hospital, doctorsCount, distanceInfo);
 };
 
 /**

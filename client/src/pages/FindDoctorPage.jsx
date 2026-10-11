@@ -16,10 +16,13 @@ import {
   ChevronRight,
   AlertCircle,
   Scale,
+  Navigation,
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
 import patientService from '../services/patientService';
+import { useGeolocation } from '../hooks/useGeolocation';
 import { useAuth } from '../context/AuthContext';
 import { DoctorCard, Button, EmptyState, LoadingSpinner } from '../components/ui';
 
@@ -37,6 +40,22 @@ export default function FindDoctorPage() {
   const queryLanguage = searchParams.get('language') || '';
   const querySort = searchParams.get('sort') || 'recommended';
   const queryPage = parseInt(searchParams.get('page') || '1', 10);
+  const queryLat = searchParams.get('latitude') || '';
+  const queryLng = searchParams.get('longitude') || '';
+  const queryRadius = searchParams.get('radius') || '25';
+  const queryUnit = searchParams.get('unit') || 'km';
+  const isLocationActive = Boolean(queryLat && queryLng);
+
+  // Geolocation Hook
+  const {
+    coordinates: geoCoords,
+    loading: geoLoading,
+    error: geoError,
+    requestLocation,
+    clearLocation: clearGeoLocation,
+  } = useGeolocation();
+
+  const [dismissedLocationError, setDismissedLocationError] = useState(false);
 
   // Local state for debouncing search input
   const [searchInput, setSearchInput] = useState(querySearch);
@@ -61,6 +80,20 @@ export default function FindDoctorPage() {
     }, 400);
     return () => clearTimeout(handler);
   }, [searchInput]);
+
+  // Sync Geolocation coordinates to URL
+  useEffect(() => {
+    if (geoCoords) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('latitude', String(geoCoords.latitude));
+      newParams.set('longitude', String(geoCoords.longitude));
+      if (!newParams.get('radius')) newParams.set('radius', '25');
+      newParams.set('sort', 'nearest');
+      newParams.delete('page');
+      setSearchParams(newParams);
+      toast.success('Location active: displaying nearest certified doctors.');
+    }
+  }, [geoCoords]);
 
   // Load specializations and hospitals for filter dropdowns
   useEffect(() => {
@@ -115,6 +148,14 @@ export default function FindDoctorPage() {
           sort: querySort !== 'recommended' ? querySort : undefined,
         };
 
+        // Location parameters
+        if (queryLat && queryLng) {
+          params.latitude = Number(queryLat);
+          params.longitude = Number(queryLng);
+          params.radius = Number(queryRadius) || 25;
+          if (queryUnit) params.unit = queryUnit;
+        }
+
         const res = await discoveryService.getDoctors(params);
         if (isMounted && res.success) {
           setDoctors(res.data);
@@ -143,7 +184,26 @@ export default function FindDoctorPage() {
     queryLanguage,
     querySort,
     queryPage,
+    queryLat,
+    queryLng,
+    queryRadius,
+    queryUnit,
   ]);
+
+  const handleClearLocation = () => {
+    clearGeoLocation();
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('latitude');
+    newParams.delete('longitude');
+    newParams.delete('radius');
+    newParams.delete('unit');
+    if (newParams.get('sort') === 'nearest') {
+      newParams.set('sort', 'recommended');
+    }
+    newParams.delete('page');
+    setSearchParams(newParams);
+    toast.success('Location filter cleared.');
+  };
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -230,6 +290,54 @@ export default function FindDoctorPage() {
         </button>
       </div>
 
+      {/* Fallback Banner for Denied/Unavailable Geolocation */}
+      {geoError && !dismissedLocationError && (
+        <div className="p-3 sm:p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>Location access was unavailable. You can continue searching manually by specialty, hospital, or name.</span>
+          </div>
+          <button
+            onClick={() => setDismissedLocationError(true)}
+            className="text-amber-700 hover:text-amber-900 p-1 rounded-lg"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Active Location Indicator */}
+      {isLocationActive && (
+        <div className="p-2.5 sm:px-4 rounded-2xl bg-brand-50 border border-brand-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-brand-900 font-medium">
+            <MapPin className="w-4 h-4 text-brand-600 shrink-0" />
+            <span>
+              Nearby search active: showing doctors within <strong>{queryRadius} km</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-500 font-semibold">Radius:</span>
+            <select
+              value={queryRadius}
+              onChange={(e) => updateFilter('radius', e.target.value)}
+              className="px-2 py-1 rounded-xl bg-white border border-brand-200 text-xs font-bold text-brand-800 focus:outline-none"
+            >
+              <option value="10">10 km</option>
+              <option value="25">25 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+            </select>
+            <button
+              type="button"
+              onClick={handleClearLocation}
+              className="text-xs font-bold text-rose-600 hover:text-rose-800 hover:underline px-1"
+            >
+              Clear Location
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Search & Sort Bar */}
       <div className="p-3 sm:p-4 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
@@ -254,6 +362,31 @@ export default function FindDoctorPage() {
           )}
         </div>
 
+        {/* Use My Location Action */}
+        <button
+          type="button"
+          onClick={requestLocation}
+          disabled={geoLoading}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all shrink-0 ${
+            isLocationActive
+              ? 'bg-brand-600 text-white shadow-xs'
+              : 'bg-slate-50 hover:bg-brand-50 border border-slate-200 text-slate-700 hover:text-brand-700'
+          }`}
+          title="Find doctors nearest to your current location"
+        >
+          {geoLoading ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-600" />
+          ) : (
+            <Navigation className={`w-3.5 h-3.5 ${isLocationActive ? 'fill-current' : 'text-brand-600'}`} />
+          )}
+          <span className="hidden sm:inline">
+            {geoLoading ? 'Detecting...' : isLocationActive ? 'Nearby Active' : 'Use My Location'}
+          </span>
+          <span className="sm:hidden">
+            {geoLoading ? '...' : isLocationActive ? 'Nearby' : 'Location'}
+          </span>
+        </button>
+
         {/* Sort Dropdown */}
         <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
           <span className="text-xs font-semibold text-slate-500 hidden sm:inline">Sort:</span>
@@ -262,6 +395,7 @@ export default function FindDoctorPage() {
             onChange={(e) => updateFilter('sort', e.target.value)}
             className="w-full md:w-auto px-3 py-2 rounded-2xl border border-slate-200 text-xs font-semibold bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           >
+            {isLocationActive && <option value="nearest">Nearest to Location</option>}
             <option value="recommended">Recommended (Deterministic)</option>
             <option value="rating">Highest Rated</option>
             <option value="experience">Most Experienced</option>
@@ -278,6 +412,7 @@ export default function FindDoctorPage() {
             queryRating ||
             queryFeeMax ||
             queryLanguage ||
+            isLocationActive ||
             querySort !== 'recommended') && (
             <button
               onClick={handleClearFilters}
@@ -496,7 +631,8 @@ export default function FindDoctorPage() {
                   specialization={doc.specialization}
                   qualification={doc.qualification}
                   experience={doc.experience}
-                  hospital={doc.hospital?.name}
+                  hospital={doc.hospital}
+                  distance={doc.distanceFormatted || (doc.distance !== undefined ? `${doc.distance} ${doc.distanceUnit || 'km'}` : undefined)}
                   rating={doc.rating}
                   reviewCount={doc.reviewCount}
                   consultationFee={doc.consultationFee}

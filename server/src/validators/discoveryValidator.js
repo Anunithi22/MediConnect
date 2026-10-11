@@ -82,10 +82,26 @@ export const validateDoctorQuery = [
     .trim()
     .isLength({ max: 50 })
     .withMessage('Language filter cannot exceed 50 characters.'),
+  query('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be a valid number between -90 and 90.'),
+  query('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be a valid number between -180 and 180.'),
+  query('radius')
+    .optional()
+    .isFloat({ min: 0.0001, max: 500 })
+    .withMessage('Radius must be a positive number up to 500 km.'),
+  query('unit')
+    .optional()
+    .isIn(['km', 'mi'])
+    .withMessage('Distance unit must be either km or mi.'),
   query('sort')
     .optional()
-    .isIn(['rating', 'experience', 'feeLow', 'feeHigh', 'name', 'newest', 'recommended'])
-    .withMessage('Invalid sort parameter. Supported: rating, experience, feeLow, feeHigh, name, newest, recommended.'),
+    .isIn(['rating', 'experience', 'feeLow', 'feeHigh', 'name', 'newest', 'recommended', 'nearest'])
+    .withMessage('Invalid sort parameter. Supported: rating, experience, feeLow, feeHigh, name, newest, recommended, nearest.'),
   handleValidationErrors,
 ];
 
@@ -138,10 +154,26 @@ export const validateHospitalQuery = [
     .optional()
     .custom((val) => val === 'true' || val === 'false' || val === true || val === false)
     .withMessage('Emergency filter must be a boolean (true or false).'),
+  query('latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be a valid number between -90 and 90.'),
+  query('longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be a valid number between -180 and 180.'),
+  query('radius')
+    .optional()
+    .isFloat({ min: 0.0001, max: 500 })
+    .withMessage('Radius must be a positive number up to 500 km.'),
+  query('unit')
+    .optional()
+    .isIn(['km', 'mi'])
+    .withMessage('Distance unit must be either km or mi.'),
   query('sort')
     .optional()
-    .isIn(['recommended', 'rating', 'name', 'beds', 'newest'])
-    .withMessage('Invalid sort parameter. Supported: recommended, rating, name, beds, newest.'),
+    .isIn(['recommended', 'rating', 'name', 'beds', 'newest', 'nearest'])
+    .withMessage('Invalid sort parameter. Supported: recommended, rating, name, beds, newest, nearest.'),
   handleValidationErrors,
 ];
 

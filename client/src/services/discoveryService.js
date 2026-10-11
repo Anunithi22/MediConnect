@@ -7,8 +7,8 @@ export const discoveryService = {
     return res.data;
   },
 
-  getDoctorById: async (id) => {
-    const res = await api.get(`/doctors/${id}`);
+  getDoctorById: async (id, params = {}) => {
+    const res = await api.get(`/doctors/${id}`, { params });
     return res.data;
   },
 
@@ -24,8 +24,8 @@ export const discoveryService = {
     return res.data;
   },
 
-  getHospitalById: async (id) => {
-    const res = await api.get(`/hospitals/${id}`);
+  getHospitalById: async (id, params = {}) => {
+    const res = await api.get(`/hospitals/${id}`, { params });
     return res.data;
   },
 

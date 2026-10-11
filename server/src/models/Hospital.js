@@ -30,11 +30,22 @@ const hospitalSchema = new mongoose.Schema(
     },
     latitude: {
       type: Number,
-      required: [true, 'Hospital latitude is required for Haversine distance calculation'],
+      required: [true, 'Hospital latitude is required for distance calculation'],
     },
     longitude: {
       type: Number,
-      required: [true, 'Hospital longitude is required for Haversine distance calculation'],
+      required: [true, 'Hospital longitude is required for distance calculation'],
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: [true, 'Hospital coordinates [longitude, latitude] are required'],
+      },
     },
     phone: {
       type: String,
@@ -99,7 +110,24 @@ const hospitalSchema = new mongoose.Schema(
   }
 );
 
+// Pre-validate hook to keep latitude, longitude and GeoJSON location in sync
+hospitalSchema.pre('validate', function (next) {
+  if (this.longitude !== undefined && this.latitude !== undefined) {
+    if (!this.location || !Array.isArray(this.location.coordinates) || this.location.coordinates.length !== 2) {
+      this.location = {
+        type: 'Point',
+        coordinates: [Number(this.longitude), Number(this.latitude)],
+      };
+    }
+  } else if (this.location && Array.isArray(this.location.coordinates) && this.location.coordinates.length === 2) {
+    this.longitude = this.location.coordinates[0];
+    this.latitude = this.location.coordinates[1];
+  }
+  next();
+});
+
 // Indexes for high performance hospital discovery
+hospitalSchema.index({ location: '2dsphere' });
 hospitalSchema.index({ latitude: 1, longitude: 1 });
 hospitalSchema.index({ city: 1, state: 1, pincode: 1 });
 hospitalSchema.index({ specialties: 1, isActive: 1 });

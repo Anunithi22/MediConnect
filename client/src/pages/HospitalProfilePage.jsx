@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Building2,
   MapPin,
@@ -20,6 +20,7 @@ import {
   Stethoscope,
   ArrowRight,
   Scale,
+  Navigation,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -29,6 +30,7 @@ import { DoctorCard, Button, Badge } from '../components/ui';
 
 export default function HospitalProfilePage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { currentUser, isAuthenticated } = useAuth();
 
   const [hospital, setHospital] = useState(null);
@@ -47,7 +49,17 @@ export default function HospitalProfilePage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await discoveryService.getHospitalById(id);
+        const params = {};
+        const userLat = searchParams.get('latitude');
+        const userLng = searchParams.get('longitude');
+        const userUnit = searchParams.get('unit');
+        if (userLat && userLng) {
+          params.latitude = Number(userLat);
+          params.longitude = Number(userLng);
+          if (userUnit) params.unit = userUnit;
+        }
+
+        const res = await discoveryService.getHospitalById(id, params);
         if (isMounted && res.success) {
           setHospital(res.data);
         }
@@ -69,7 +81,7 @@ export default function HospitalProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, searchParams]);
 
   // Load practicing doctors for this hospital
   useEffect(() => {
@@ -484,17 +496,37 @@ export default function HospitalProfilePage() {
               Contact & Location Details
             </h3>
 
-            {/* Address */}
-            <div className="space-y-1">
+            {/* Address & Location */}
+            <div className="space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
                 Hospital Address
               </span>
               <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-                {hospital.address?.street && `${hospital.address.street}, `}
-                {hospital.address?.city || hospital.city || 'Chennai'},{' '}
-                {hospital.address?.state || 'Tamil Nadu'}{' '}
-                {hospital.address?.pincode && `- ${hospital.address.pincode}`}
+                {hospital.address || `${hospital.city}, ${hospital.state || 'Tamil Nadu'}`}
               </p>
+
+              {/* Distance badge if user location provided */}
+              {hospital.distance !== undefined && (
+                <div className="p-2.5 rounded-xl bg-brand-50 border border-brand-200/80 text-xs font-bold text-brand-800 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-brand-600 shrink-0" />
+                  <span>
+                    {hospital.distanceFormatted || `${hospital.distance} ${hospital.distanceUnit || 'km'} from your location`}
+                  </span>
+                </div>
+              )}
+
+              {/* Google Maps link if coordinates available */}
+              {(hospital.latitude !== undefined && hospital.longitude !== undefined) && (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${hospital.latitude},${hospital.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-800 hover:underline pt-0.5"
+                >
+                  <Navigation className="w-3.5 h-3.5 text-brand-600" />
+                  <span>View on Google Maps</span>
+                </a>
+              )}
             </div>
 
             {/* Emergency Service status */}

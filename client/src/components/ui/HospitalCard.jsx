@@ -102,10 +102,10 @@ export default function HospitalCard({
               {reviewCount > 0 && <span className="text-[10px] text-slate-300">({reviewCount})</span>}
             </span>
 
-            {distance && (
+            {(distance !== undefined && distance !== null) && (
               <span className="flex items-center gap-1 text-xs font-bold bg-brand-600/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
                 <MapPin className="w-3 h-3" />
-                <span>{distance}</span>
+                <span>{typeof distance === 'number' ? `${distance} km` : distance}</span>
               </span>
             )}
           </div>

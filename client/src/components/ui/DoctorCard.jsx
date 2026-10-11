@@ -134,6 +134,17 @@ export default function DoctorCard({
             </div>
           )}
 
+          {(distance !== undefined || (typeof hospital === 'object' && hospital?.distance !== undefined)) && (
+            <div className="flex items-center gap-1.5 text-xs font-bold text-brand-700 bg-brand-50/90 px-2.5 py-1 rounded-xl border border-brand-200/70 w-fit">
+              <MapPin className="w-3.5 h-3.5 text-brand-600 shrink-0" />
+              <span>
+                {distance !== undefined
+                  ? `${distance} away`
+                  : `${hospital.distance} ${hospital.distanceUnit || 'km'} away`}
+              </span>
+            </div>
+          )}
+
           {languages && languages.length > 0 && (
             <div className="text-[11px] text-slate-500 truncate">
               Languages: {languages.join(', ')}

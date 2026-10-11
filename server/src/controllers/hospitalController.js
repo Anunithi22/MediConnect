@@ -14,6 +14,7 @@ export const getHospitals = async (req, res, next) => {
         success: true,
         data: [],
         pagination: result.pagination,
+        locationSearch: result.locationSearch,
         message: 'No hospitals found matching your search criteria.',
       });
     }
@@ -22,6 +23,7 @@ export const getHospitals = async (req, res, next) => {
       success: true,
       data: result.data,
       pagination: result.pagination,
+      locationSearch: result.locationSearch,
     });
   } catch (error) {
     next(error);
@@ -35,7 +37,7 @@ export const getHospitals = async (req, res, next) => {
  */
 export const getHospitalById = async (req, res, next) => {
   try {
-    const hospital = await hospitalSearchService.getHospitalById(req.params.id);
+    const hospital = await hospitalSearchService.getHospitalById(req.params.id, req.query);
     res.status(200).json({
       success: true,
       data: hospital,

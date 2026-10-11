@@ -14,6 +14,7 @@ export const getDoctors = async (req, res, next) => {
         success: true,
         data: [],
         pagination: result.pagination,
+        locationSearch: result.locationSearch,
         message: 'No doctors found matching your search criteria.',
       });
     }
@@ -22,6 +23,7 @@ export const getDoctors = async (req, res, next) => {
       success: true,
       data: result.data,
       pagination: result.pagination,
+      locationSearch: result.locationSearch,
     });
   } catch (error) {
     next(error);
@@ -35,7 +37,7 @@ export const getDoctors = async (req, res, next) => {
  */
 export const getDoctorById = async (req, res, next) => {
   try {
-    const doctor = await doctorSearchService.getDoctorById(req.params.id, req.user);
+    const doctor = await doctorSearchService.getDoctorById(req.params.id, req.user, req.query);
     res.status(200).json({
       success: true,
       data: doctor,

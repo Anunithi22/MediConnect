@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   Stethoscope,
   Building2,
@@ -24,6 +24,7 @@ import {
   Video,
   GraduationCap,
   Briefcase,
+  Navigation,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
@@ -33,6 +34,7 @@ import { Button, Badge, Modal } from '../components/ui';
 
 export default function DoctorProfilePage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
 
@@ -49,7 +51,17 @@ export default function DoctorProfilePage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await discoveryService.getDoctorById(id);
+        const params = {};
+        const userLat = searchParams.get('latitude');
+        const userLng = searchParams.get('longitude');
+        const userUnit = searchParams.get('unit');
+        if (userLat && userLng) {
+          params.latitude = Number(userLat);
+          params.longitude = Number(userLng);
+          if (userUnit) params.unit = userUnit;
+        }
+
+        const res = await discoveryService.getDoctorById(id, params);
         if (isMounted && res.success) {
           setDoctor(res.data);
         }
@@ -71,7 +83,7 @@ export default function DoctorProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, searchParams]);
 
   // Check saved state for patient
   useEffect(() => {
@@ -532,6 +544,35 @@ export default function DoctorProfilePage() {
                     </span>
                   )}
                 </div>
+
+                {/* Distance Badge if user coordinates available */}
+                {(doctor.distance !== undefined || doctor.hospital?.distance !== undefined) && (
+                  <div className="p-2.5 rounded-xl bg-brand-50 border border-brand-200/80 text-xs text-brand-900 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-brand-700">
+                      <MapPin className="w-4 h-4 text-brand-600 shrink-0" />
+                      <span>
+                        {doctor.distanceFormatted ||
+                          `${doctor.distance || doctor.hospital.distance} ${doctor.distanceUnit || doctor.hospital.distanceUnit || 'km'} from your location`}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 italic">
+                      Distance represents straight-line geospatial distance and not exact road travel time.
+                    </p>
+                  </div>
+                )}
+
+                {/* Google Maps link if coordinates available */}
+                {(doctor.hospital.latitude !== undefined && doctor.hospital.longitude !== undefined) && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${doctor.hospital.latitude},${doctor.hospital.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-800 hover:underline pt-0.5"
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-brand-600" />
+                    <span>View Hospital on Google Maps</span>
+                  </a>
+                )}
 
                 {doctor.hospital.phone && (
                   <div className="text-xs text-slate-600 flex items-center gap-2 pt-2 border-t border-slate-200/60">

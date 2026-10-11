@@ -282,9 +282,14 @@ export const seedDatabase = async () => {
     createdSpecs.forEach((s) => specMap.set(s.name, s));
 
     console.log('[Seed] Inserting Hospitals...');
+    await Hospital.syncIndexes();
     const bedCounts = [750, 600, 450, 500, 800, 350, 520, 650, 400, 900];
     const hospitalsWithSpecs = hospitalsData.map((h, idx) => ({
       ...h,
+      location: {
+        type: 'Point',
+        coordinates: [Number(h.longitude), Number(h.latitude)],
+      },
       description: `${h.name} is a premier healthcare institution in ${h.city}, equipped with modern diagnostic facilities, comprehensive emergency trauma response, and multi-disciplinary specialty departments.`,
       hospitalType: idx % 3 === 0 ? 'Super-Specialty' : idx % 3 === 1 ? 'Multi-Specialty' : 'Private',
       totalBeds: bedCounts[idx % bedCounts.length],
