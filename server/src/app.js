@@ -16,6 +16,8 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import hospitalRoutes from './routes/hospitalRoutes.js';
 import specializationRoutes from './routes/specializationRoutes.js';
+import doctorAppointmentRoutes from './routes/doctorAppointmentRoutes.js';
+import swaggerRoutes from './routes/swagger.routes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -82,7 +84,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/specializations', specializationRoutes);
-
+app.use('/api/doctor/appointments', doctorAppointmentRoutes);
+app.use('/api/docs', swaggerRoutes);
 // Root route
 app.get('/', (req, res) => {
   res.status(200).json({

@@ -1,10 +1,60 @@
 import mongoose from 'mongoose';
 import { Appointment, Review, Notification, Patient } from '../models/index.js';
+import * as availabilityService from '../services/availabilityService.js';
+import * as appointmentService from '../services/appointmentService.js';
+
+/**
+ * @desc    Get available time slots for a doctor on a specific date
+ * @route   GET /api/appointments/available-slots
+ * @access  Public
+ */
+export const getAvailableSlots = async (req, res, next) => {
+  try {
+    const { doctorId, date, mode } = req.query;
+    const result = await availabilityService.getDoctorAvailableSlots({
+      doctorId,
+      date,
+      mode,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Create a new appointment booking
+ * @route   POST /api/appointments
+ * @access  Private (Patient only)
+ */
+export const createAppointment = async (req, res, next) => {
+  try {
+    const { doctorId, date, timeSlot, consultationMode, reason } = req.body;
+
+    const appointment = await appointmentService.createBooking({
+      patientUserId: req.user._id,
+      doctorId,
+      date,
+      timeSlot,
+      consultationMode,
+      reason,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Appointment booked successfully.',
+      data: appointment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @desc    Get all appointments for the logged-in patient
  * @route   GET /api/appointments/my
- * @access  Private (Patient)
+ * @access  Private (Patient only)
  */
 export const getMyAppointments = async (req, res, next) => {
   try {
@@ -26,6 +76,8 @@ export const getMyAppointments = async (req, res, next) => {
       query.status = 'completed';
     } else if (status === 'cancelled') {
       query.status = 'cancelled';
+    } else if (status === 'no-show') {
+      query.status = 'no-show';
     } else if (status && status !== 'all') {
       query.status = status;
     }
@@ -44,7 +96,7 @@ export const getMyAppointments = async (req, res, next) => {
             { path: 'specialization', select: 'name category icon' },
           ],
         })
-        .populate('hospital', 'name address city state phone rating image'),
+        .populate('hospital', 'name address city state phone rating image emergencyContact'),
       Appointment.countDocuments(query),
     ]);
 
@@ -103,6 +155,17 @@ export const getAppointmentById = async (req, res, next) => {
       });
     }
 
+    // Security Check: Doctor can only view their own appointments
+    if (req.user.role === 'doctor') {
+      const docUser = appointment.doctor?.user?._id?.toString() || appointment.doctor?.user?.toString();
+      if (docUser !== req.user._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden. You do not have permission to view this appointment.',
+        });
+      }
+    }
+
     // Check if review exists for this appointment
     const review = await Review.findOne({ appointment: appointment._id });
 
@@ -119,60 +182,48 @@ export const getAppointmentById = async (req, res, next) => {
 };
 
 /**
- * @desc    Cancel an upcoming appointment
- * @route   PATCH /api/appointments/:id/cancel
+ * @desc    Reschedule an upcoming appointment
+ * @route   PATCH /api/appointments/:id/reschedule
  * @access  Private (Patient only)
+ */
+export const rescheduleAppointment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { newDate, newTimeSlot, newConsultationMode } = req.body;
+
+    const updated = await appointmentService.rescheduleBooking({
+      patientUserId: req.user._id,
+      appointmentId: id,
+      newDate,
+      newTimeSlot,
+      newConsultationMode,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Appointment rescheduled successfully.',
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Cancel an appointment (Patient, Doctor, or Admin)
+ * @route   PATCH /api/appointments/:id/cancel
+ * @access  Private (Patient/Doctor/Admin)
  */
 export const cancelAppointment = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { reason = 'Cancelled by patient' } = req.body;
+    const { reason = 'Cancelled by user request' } = req.body;
 
-    const isObjectId = mongoose.Types.ObjectId.isValid(id);
-    const filter = isObjectId ? { _id: id } : { bookingId: id };
-
-    const appointment = await Appointment.findOne(filter);
-
-    if (!appointment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Appointment not found.',
-      });
-    }
-
-    // Security Ownership check
-    if (appointment.patientUser.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Forbidden. You cannot cancel appointments belonging to other patients.',
-      });
-    }
-
-    if (appointment.status === 'completed') {
-      return res.status(400).json({
-        success: false,
-        message: 'Completed appointments cannot be cancelled.',
-      });
-    }
-
-    if (appointment.status === 'cancelled') {
-      return res.status(400).json({
-        success: false,
-        message: 'This appointment is already cancelled.',
-      });
-    }
-
-    appointment.status = 'cancelled';
-    appointment.cancellationReason = reason.trim();
-    await appointment.save();
-
-    // Create notification for patient
-    await Notification.create({
-      recipient: req.user._id,
-      title: 'Appointment Cancelled',
-      message: `Your appointment ${appointment.bookingId} has been cancelled.`,
-      type: 'appointment_cancelled',
-      relatedId: appointment._id,
+    const appointment = await appointmentService.cancelBooking({
+      userId: req.user._id,
+      userRole: req.user.role,
+      appointmentId: id,
+      reason,
     });
 
     res.status(200).json({

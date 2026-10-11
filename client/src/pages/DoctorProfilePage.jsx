@@ -30,7 +30,7 @@ import toast from 'react-hot-toast';
 import discoveryService from '../services/discoveryService';
 import patientService from '../services/patientService';
 import { useAuth } from '../context/AuthContext';
-import { Button, Badge, Modal } from '../components/ui';
+import { Button, Badge, Modal, Textarea } from '../components/ui';
 
 export default function DoctorProfilePage() {
   const { id } = useParams();
@@ -43,7 +43,15 @@ export default function DoctorProfilePage() {
   const [error, setError] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [savingAction, setSavingAction] = useState(false);
-  const [showBookingNotice, setShowBookingNotice] = useState(false);
+  // Booking UI state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingDate, setBookingDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [bookingMode, setBookingMode] = useState('in-person');
+  const [bookingReason, setBookingReason] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -666,7 +674,7 @@ export default function DoctorProfilePage() {
                 variant="primary"
                 className="w-full justify-center shadow-md py-3 text-sm"
                 trailingIcon={ArrowRight}
-                onClick={() => setShowBookingNotice(true)}
+                onClick={() => setShowBookingModal(true)}
               >
                 Book Consultation
               </Button>
@@ -705,43 +713,170 @@ export default function DoctorProfilePage() {
         </aside>
       </div>
 
-      {/* Booking Notice Modal (Phase 9 Bridge) */}
-      {showBookingNotice && (
+            {/* Booking Modal */}
+      {showBookingModal && (
         <Modal
-          isOpen={showBookingNotice}
-          onClose={() => setShowBookingNotice(false)}
-          title="Online Appointment Booking"
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          title="Book an Appointment"
+          maxWidth="max-w-lg"
         >
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-brand-50 border border-brand-100 flex items-start gap-3">
-              <Calendar className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
-              <div className="text-xs text-brand-900 space-y-1">
-                <p className="font-bold">
-                  Direct Live Slot Booking Engine arrives in Phase 9!
-                </p>
-                <p className="text-brand-800 leading-relaxed">
-                  Real-time calendar slot reservation and multi-doctor schedule coordination will unlock in the next milestone.
-                </p>
-              </div>
+          <div className="space-y-6">
+            {/* Date picker */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Select Date</label>
+              <input
+                type="date"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={bookingDate}
+                onChange={(e) => {
+                  const newDate = e.target.value;
+                  setBookingDate(newDate);
+                  setSelectedSlot('');
+                  if (newDate) {
+                    const mode = bookingMode;
+                    setSlotsLoading(true);
+                    appointmentService
+                      .getAvailableSlots(doctor._id, newDate, mode)
+                      .then((res) => {
+                        if (res.success) {
+                          setAvailableSlots(res.data);
+                        } else {
+                          toast.error(res.message || 'Failed to load slots');
+                          setAvailableSlots([]);
+                        }
+                      })
+                      .catch((err) => {
+                        toast.error(err.message || 'Error fetching slots');
+                        setAvailableSlots([]);
+                      })
+                      .finally(() => setSlotsLoading(false));
+                  } else {
+                    setAvailableSlots([]);
+                  }
+                }}
+                min={new Date().toISOString().split('T')[0]}
+              />
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              In the meantime, you can bookmark <strong>Dr. {doctor.name}</strong> to your patient dashboard for instant one-click booking when slots go live!
-            </p>
+            {/* Consultation mode */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Consultation Mode</label>
+              <select
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={bookingMode}
+                onChange={(e) => {
+                  setBookingMode(e.target.value);
+                  if (bookingDate) {
+                    setSlotsLoading(true);
+                    appointmentService
+                      .getAvailableSlots(doctor._id, bookingDate, e.target.value)
+                      .then((res) => {
+                        if (res.success) {
+                          setAvailableSlots(res.data);
+                        } else {
+                          toast.error(res.message || 'Failed to load slots');
+                          setAvailableSlots([]);
+                        }
+                      })
+                      .catch((err) => toast.error(err.message || 'Error fetching slots'))
+                      .finally(() => setSlotsLoading(false));
+                  }
+                }}
+              >
+                {(doctor?.consultationModes?.length ? doctor.consultationModes : ['in-person']).map((mode) => (
+                  <option key={mode} value={mode}>
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-              <Button variant="ghost" size="sm" onClick={() => setShowBookingNotice(false)}>
-                Close
+            {/* Available slots */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Available Time Slots</label>
+              {slotsLoading ? (
+                <div className="text-sm text-slate-500">Loading slots...</div>
+              ) : availableSlots && availableSlots.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {availableSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      className={`p-2 rounded-md text-sm border ${selectedSlot === slot ? 'bg-brand-100 border-brand-500 text-brand-700' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+                      onClick={() => setSelectedSlot(slot)}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              ) : bookingDate ? (
+                <div className="text-sm text-slate-500">No slots available for this date/mode.</div>
+              ) : (
+                <div className="text-sm text-slate-500">Select a date to view slots.</div>
+              )}
+            </div>
+
+            {/* Reason */}
+            <Textarea
+              label="Reason (optional)"
+              placeholder="Brief reason for the appointment (max 250 characters)"
+              rows={3}
+              value={bookingReason}
+              onChange={(e) => setBookingReason(e.target.value)}
+              maxLength={250}
+            />
+
+            {/* Summary */}
+            <div className="p-4 border rounded-lg bg-slate-50">
+              <h4 className="font-medium mb-2">Booking Summary</h4>
+              <ul className="text-sm text-slate-700 space-y-1">
+                <li><strong>Doctor:</strong> {doctor?.user?.fullName || doctor?.name}</li>
+                <li><strong>Hospital:</strong> {doctor?.hospital?.name || 'N/A'}</li>
+                <li><strong>Date:</strong> {bookingDate || '—'}</li>
+                <li><strong>Time Slot:</strong> {selectedSlot || '—'}</li>
+                <li><strong>Mode:</strong> {bookingMode}</li>
+                <li><strong>Fee:</strong> ₹{doctor?.consultationFee || 0}</li>
+              </ul>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
+              <Button variant="ghost" size="sm" onClick={() => setShowBookingModal(false)} disabled={bookingLoading}>
+                Cancel
               </Button>
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => {
-                  handleToggleSave();
-                  setShowBookingNotice(false);
+                loading={bookingLoading}
+                disabled={!bookingDate || !selectedSlot || !bookingMode}
+                onClick={async () => {
+                  if (!bookingDate || !selectedSlot) return;
+                  setBookingLoading(true);
+                  try {
+                    const payload = {
+                      doctorId: doctor._id,
+                      date: bookingDate,
+                      timeSlot: selectedSlot,
+                      consultationMode: bookingMode,
+                      reason: bookingReason,
+                    };
+                    const res = await appointmentService.createAppointment(payload);
+                    if (res.success) {
+                      toast.success('Appointment booked successfully');
+                      setShowBookingModal(false);
+                      // Optionally refresh patient appointments list elsewhere
+                    } else {
+                      toast.error(res.message || 'Failed to book appointment');
+                    }
+                  } catch (err) {
+                    toast.error(err.message || 'Error booking appointment');
+                  } finally {
+                    setBookingLoading(false);
+                  }
                 }}
               >
-                {isSaved ? 'Already Saved' : 'Save Doctor to Dashboard'}
+                Confirm Booking
               </Button>
             </div>
           </div>
