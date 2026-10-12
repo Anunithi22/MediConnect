@@ -39,7 +39,7 @@ const Input = forwardRef(
             id={inputId}
             ref={ref}
             required={required}
-            className={`w-full py-2.5 rounded-xl border text-sm text-slate-800 placeholder-slate-400 bg-white transition-all focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
+            className={`w-full py-2.5 rounded-lg border border-border text-sm text-slate-800 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 ${
               Icon ? 'pl-10' : 'pl-3.5'
             } ${rightElement ? 'pr-10' : 'pr-3.5'} ${
               error

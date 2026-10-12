@@ -9,9 +9,9 @@ export default function IconButton({
   ...props
 }) {
   const sizeClasses = {
-    sm: 'p-1.5 rounded-lg',
-    md: 'p-2 rounded-xl',
-    lg: 'p-2.5 rounded-2xl',
+    sm: 'p-1 rounded-sm',
+    md: 'p-2 rounded-md',
+    lg: 'p-3 rounded-lg',
   };
 
   const iconSizes = {
@@ -21,11 +21,9 @@ export default function IconButton({
   };
 
   const variantClasses = {
-    outline: 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-    ghost: 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-900',
-    primary: 'bg-brand-600 text-white hover:bg-brand-700 shadow-xs',
-    danger: 'border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100',
-  };
+    outline: 'bg-white border border-muted text-muted hover:bg-muted/10 focus:ring-primary/20',
+    ghost: 'bg-transparent text-muted hover:bg-muted/5 focus:ring-primary/20',
+  };;
 
   return (
     <button

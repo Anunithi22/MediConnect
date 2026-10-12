@@ -11,12 +11,10 @@ export default function Card({
   if (doubleBezel) {
     return (
       <div
-        className={`p-2 sm:p-2.5 rounded-3xl bg-slate-200/60 backdrop-blur-md shadow-card border border-white/60 ${className}`}
+        className={`bg-card rounded-2xl shadow-card border border-border p-6 ${className}`}
         {...props}
       >
-        <div className="bg-white rounded-[1.35rem] p-5 sm:p-6 shadow-xs border border-slate-100 h-full">
-          {children}
-        </div>
+        {children}
       </div>
     );
   }
