@@ -67,11 +67,11 @@ export default function Navbar() {
 
       {/* Floating Island Navigation Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <nav className="glass-panel rounded-3xl px-4 lg:px-6 py-2.5 shadow-card flex items-center justify-between">
+        <nav className="glass-panel rounded-2xl px-4 lg:px-6 py-2.5 shadow-card flex items-center justify-between">
           
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-10 h-10 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform duration-200">
               <HeartHandshake className="w-5 h-5" />
             </div>
             <div>
@@ -98,11 +98,11 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all relative ${
-                    active
-                      ? 'bg-brand-50 text-brand-700 font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-                  }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all relative ${
+                active
+                  ? 'bg-primary-50 text-primary-700 font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+            }}`
                 >
                   <Icon className={`w-3.5 h-3.5 ${active ? 'text-brand-600' : 'text-slate-400'}`} />
                   <span>{link.name}</span>
