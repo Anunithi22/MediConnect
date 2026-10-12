@@ -98,11 +98,11 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all relative ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all relative ${active ? 'bg-primary-50 text-primary-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'}`}
                 active
                   ? 'bg-primary-50 text-primary-700 font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
-            }}`
+            }\`}}`
                 >
                   <Icon className={`w-3.5 h-3.5 ${active ? 'text-brand-600' : 'text-slate-400'}`} />
                   <span>{link.name}</span>
